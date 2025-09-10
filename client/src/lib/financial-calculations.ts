@@ -26,6 +26,12 @@ export interface CashFlowProjection {
   cumulativeCashFlow: number;
 }
 
+export interface PaybackPeriod {
+  years: number;
+  months: number;
+  totalMonths: number;
+}
+
 export interface CalculationResults {
   totalRevenue: number;
   otcRevenue: number;
@@ -39,6 +45,7 @@ export interface CalculationResults {
   cashFlowProjections: CashFlowProjection[];
   npv: number;
   irr: number;
+  paybackPeriod: PaybackPeriod;
   isViable: boolean;
 }
 
@@ -130,6 +137,9 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   
   // IRR calculation
   const irr = calculateIRR(cashFlowProjections.map(cf => cf.netCashFlow));
+  
+  // Payback Period calculation
+  const paybackPeriod = calculatePaybackPeriod(cashFlowProjections);
 
   return {
     totalRevenue,
@@ -144,6 +154,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     cashFlowProjections,
     npv,
     irr: irr * 100, // Convert to percentage
+    paybackPeriod,
     isViable: npv > 0 && irr > WACC,
   };
 }
@@ -180,4 +191,36 @@ function calculateIRR(cashFlows: number[]): number {
   }
 
   return rate;
+}
+
+function calculatePaybackPeriod(cashFlowProjections: CashFlowProjection[]): PaybackPeriod {
+  let cumulativeCashFlow = 0;
+  
+  for (let i = 0; i < cashFlowProjections.length; i++) {
+    cumulativeCashFlow += cashFlowProjections[i].netCashFlow;
+    
+    if (cumulativeCashFlow >= 0) {
+      // If we reach break-even in the first year
+      if (i === 0) {
+        return { years: 0, months: 0, totalMonths: 0 };
+      }
+      
+      // Calculate the exact payback period using interpolation
+      const previousCumulativeCashFlow = cumulativeCashFlow - cashFlowProjections[i].netCashFlow;
+      const currentYearCashFlow = cashFlowProjections[i].netCashFlow;
+      
+      // Calculate how much of the current year is needed to reach break-even
+      const fractionOfYear = Math.abs(previousCumulativeCashFlow) / currentYearCashFlow;
+      const totalYears = (i - 1) + fractionOfYear;
+      
+      const years = Math.floor(totalYears);
+      const months = Math.round((totalYears - years) * 12);
+      const totalMonths = Math.round(totalYears * 12);
+      
+      return { years, months, totalMonths };
+    }
+  }
+  
+  // If payback period is longer than the projection period
+  return { years: 6, months: 12, totalMonths: 84 };
 }
