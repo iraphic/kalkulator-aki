@@ -252,6 +252,19 @@ export default function FinancialAnalysis() {
                     </div>
                     
                     <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">COGS (70% dari harga)</span>
+                      <div className="text-right">
+                        <div className="font-medium" data-testid="info-total-cogs">
+                          Total: <span className="font-bold">{formatCurrency(results.totalCogs)}</span>
+                        </div>
+                        <div className="text-sm text-muted-foreground">OTC: {formatCurrency(results.otcCogs)}</div>
+                        <div className="text-sm text-muted-foreground">
+                          Bulanan: {formatCurrency(results.monthlyCogs)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Cost IBL</span>
                       <div className="text-right">
                         <div className="font-medium" data-testid="info-cost-ibl">
