@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProfitLossTable, CashFlowTable } from "@/components/financial-tables";
+import { ProfitLossTable, CashFlowTable, CogsTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
@@ -302,6 +302,16 @@ export default function FinancialAnalysis() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* COGS Projection Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Tabel Proyeksi COGS (Cost of Goods Sold)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CogsTable projections={results.cogsProjections} />
               </CardContent>
             </Card>
 
