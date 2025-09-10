@@ -35,74 +35,74 @@ export function ProfitLossTable({ projections }: ProfitLossTableProps) {
         <TableBody>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Revenue</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="total-revenue">{formatCurrency(totals.revenue)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.revenue < 0 ? 'text-red-600' : ''}`} data-testid="total-revenue">{formatCurrency(totals.revenue)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`revenue-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.revenue < 0 ? 'text-red-600' : ''}`} data-testid={`revenue-year-${index}`}>
                 {formatCurrency(p.revenue)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Bad Debt</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="total-bad-debt">{formatCurrency(totals.badDebt)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.badDebt < 0 ? 'text-red-600' : ''}`} data-testid="total-bad-debt">{formatCurrency(totals.badDebt)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`bad-debt-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.badDebt < 0 ? 'text-red-600' : ''}`} data-testid={`bad-debt-year-${index}`}>
                 {formatCurrency(p.badDebt)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">OPEX</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="total-opex">{formatCurrency(totals.opex)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.opex < 0 ? 'text-red-600' : ''}`} data-testid="total-opex">{formatCurrency(totals.opex)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`opex-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.opex < 0 ? 'text-red-600' : ''}`} data-testid={`opex-year-${index}`}>
                 {formatCurrency(p.opex)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">EBITDA</TableCell>
-            <TableCell className="px-4 py-3 text-right positive-metric" data-testid="total-ebitda">{formatCurrency(totals.ebitda)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.ebitda < 0 ? 'text-red-600' : 'positive-metric'}`} data-testid="total-ebitda">{formatCurrency(totals.ebitda)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`ebitda-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.ebitda < 0 ? 'text-red-600' : ''}`} data-testid={`ebitda-year-${index}`}>
                 {formatCurrency(p.ebitda)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Depresiasi</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="total-depreciation">{formatCurrency(totals.depreciation)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.depreciation < 0 ? 'text-red-600' : ''}`} data-testid="total-depreciation">{formatCurrency(totals.depreciation)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`depreciation-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.depreciation < 0 ? 'text-red-600' : ''}`} data-testid={`depreciation-year-${index}`}>
                 {formatCurrency(p.depreciation)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">EBIT</TableCell>
-            <TableCell className="px-4 py-3 text-right positive-metric" data-testid="total-ebit">{formatCurrency(totals.ebit)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.ebit < 0 ? 'text-red-600' : 'positive-metric'}`} data-testid="total-ebit">{formatCurrency(totals.ebit)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`ebit-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.ebit < 0 ? 'text-red-600' : ''}`} data-testid={`ebit-year-${index}`}>
                 {formatCurrency(p.ebit)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Pajak</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="total-tax">{formatCurrency(totals.tax)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.tax < 0 ? 'text-red-600' : ''}`} data-testid="total-tax">{formatCurrency(totals.tax)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`tax-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.tax < 0 ? 'text-red-600' : ''}`} data-testid={`tax-year-${index}`}>
                 {formatCurrency(p.tax)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow className="border-t-2 border-primary">
             <TableCell className="px-4 py-3 font-bold">Net Income</TableCell>
-            <TableCell className="px-4 py-3 text-right font-bold positive-metric" data-testid="total-net-income">
+            <TableCell className={`px-4 py-3 text-right font-bold ${totals.netIncome < 0 ? 'text-red-600' : 'positive-metric'}`} data-testid="total-net-income">
               {formatCurrency(totals.netIncome)}
             </TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right font-bold" data-testid={`net-income-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right font-bold ${p.netIncome < 0 ? 'text-red-600' : ''}`} data-testid={`net-income-year-${index}`}>
                 {formatCurrency(p.netIncome)}
               </TableCell>
             ))}
