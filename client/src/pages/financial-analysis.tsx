@@ -7,8 +7,6 @@ import { ProfitLossTable, CashFlowTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import { saveAs } from 'file-saver';
 
 export default function FinancialAnalysis() {
@@ -16,6 +14,7 @@ export default function FinancialAnalysis() {
     investmentCost: 0,
     monthlyRevenue: 0,
     contractPeriod: 0,
+    otcCost: 0,
   });
 
   const [results, setResults] = useState<CalculationResults | null>(null);
@@ -23,6 +22,7 @@ export default function FinancialAnalysis() {
     investmentCost: "",
     monthlyRevenue: "",
     contractPeriod: "",
+    otcCost: "",
   });
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
@@ -38,7 +38,7 @@ export default function FinancialAnalysis() {
   };
 
   const calculateAnalysis = () => {
-    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0) {
+    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
       const calculatedResults = calculateFinancialAnalysis(inputs);
       setResults(calculatedResults);
     }
@@ -108,97 +108,9 @@ export default function FinancialAnalysis() {
     saveAs(blob, 'Analisis_Kelayakan_Investasi.xlsx');
   };
 
-  const exportToPDF = (results: CalculationResults, inputs: FinancialInputs) => {
-    const doc = new jsPDF();
-    
-    // Title
-    doc.setFontSize(16);
-    doc.text('Analisis Kelayakan Investasi', 20, 20);
-    
-    // Input Parameters
-    doc.setFontSize(12);
-    doc.text('Parameter Input:', 20, 40);
-    
-    const inputTable = [
-      ['Parameter', 'Nilai'],
-      ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
-      ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
-      ['Periode (Bulan)', inputs.contractPeriod.toString()],
-      ['WACC', '17.8%'],
-      ['Tax', '11%']
-    ];
-    
-    (doc as any).autoTable({
-      head: [inputTable[0]],
-      body: inputTable.slice(1),
-      startY: 45,
-      theme: 'grid'
-    });
-    
-    // Results Summary
-    const currentY = (doc as any).lastAutoTable.finalY + 20;
-    doc.text('Hasil Analisis:', 20, currentY);
-    
-    const resultsTable = [
-      ['Metrik', 'Nilai', 'Status'],
-      ['NPV', formatCurrency(results.npv), results.npv > 0 ? 'Layak' : 'Tidak Layak'],
-      ['IRR', formatPercentage(results.irr), results.irr > 17.8 ? 'Layak' : 'Tidak Layak'],
-      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, '']
-    ];
-    
-    (doc as any).autoTable({
-      head: [resultsTable[0]],
-      body: resultsTable.slice(1),
-      startY: currentY + 5,
-      theme: 'grid'
-    });
-    
-    // Add new page for tables
-    doc.addPage();
-    
-    // Profit & Loss Table
-    doc.text('Tabel Proyeksi Profit & Loss', 20, 20);
-    
-    const plHeaders = ['Label', 'Jumlah', ...results.yearlyProjections.map((_, i) => `Tahun ${i}`)];
-    const plData = [
-      ['Revenue', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.revenue, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.revenue))],
-      ['Bad Debt', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.badDebt, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.badDebt))],
-      ['OPEX', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.opex, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.opex))],
-      ['EBITDA', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebitda, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebitda))],
-      ['Net Income', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.netIncome))]
-    ];
-    
-    (doc as any).autoTable({
-      head: [plHeaders],
-      body: plData,
-      startY: 30,
-      theme: 'grid',
-      styles: { fontSize: 8 }
-    });
-    
-    // Cash Flow Table
-    const cfCurrentY = (doc as any).lastAutoTable.finalY + 20;
-    doc.text('Cash Flow Projection', 20, cfCurrentY);
-    
-    const cfHeaders = ['Label', 'Jumlah', ...results.cashFlowProjections.map((_, i) => `Tahun ${i}`)];
-    const cfData = [
-      ['Net Cash Flow', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netCashFlow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netCashFlow))],
-      ['Cum Cash Flow', '', ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
-    ];
-    
-    (doc as any).autoTable({
-      head: [cfHeaders],
-      body: cfData,
-      startY: cfCurrentY + 10,
-      theme: 'grid',
-      styles: { fontSize: 8 }
-    });
-    
-    doc.save('Analisis_Kelayakan_Investasi.pdf');
-  };
 
   useEffect(() => {
-    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0) {
+    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
       calculateAnalysis();
     }
   }, [inputs]);
@@ -243,7 +155,7 @@ export default function FinancialAnalysis() {
               {/* User Inputs */}
               <div className="lg:col-span-3">
                 <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
                       Biaya Investasi (BOQ)
@@ -283,6 +195,20 @@ export default function FinancialAnalysis() {
                       value={inputValues.contractPeriod}
                       onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
                       data-testid="input-period"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
+                      Biaya OTC
+                    </Label>
+                    <Input
+                      type="text"
+                      id="otc-cost"
+                      placeholder="Rp 0"
+                      value={inputValues.otcCost}
+                      onChange={(e) => handleInputChange('otcCost', e.target.value)}
+                      className="currency-input"
+                      data-testid="input-otc-cost"
                     />
                   </div>
                 </div>
@@ -495,16 +421,6 @@ export default function FinancialAnalysis() {
                       <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
                     </svg>
                     Download Excel
-                  </Button>
-                  <Button 
-                    onClick={() => exportToPDF(results, inputs)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
-                    data-testid="button-export-pdf"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
-                    </svg>
-                    Download PDF
                   </Button>
                 </div>
               </CardContent>
