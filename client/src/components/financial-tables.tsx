@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatPercentage } from "@/lib/currency-utils";
-import { YearlyProjection, CashFlowProjection } from "@/lib/financial-calculations";
+import { YearlyProjection, CashFlowProjection, CogsProjection } from "@/lib/financial-calculations";
 
 interface ProfitLossTableProps {
   projections: YearlyProjection[];
@@ -198,6 +198,66 @@ export function CashFlowTable({ projections }: CashFlowTableProps) {
                 <span className={p.cumulativeCashFlow < 0 ? "text-red-600" : "positive-metric"}>
                   {formatCurrency(p.cumulativeCashFlow)}
                 </span>
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// COGS Table Component
+interface CogsTableProps {
+  projections: CogsProjection[];
+}
+
+export function CogsTable({ projections }: CogsTableProps) {
+  const totals = {
+    otcCogs: projections.reduce((sum, p) => sum + p.otcCogs, 0),
+    monthlyCogs: projections.reduce((sum, p) => sum + p.monthlyCogs, 0),
+    totalCogs: projections.reduce((sum, p) => sum + p.totalCogs, 0),
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground">Label</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-foreground">Jumlah</TableHead>
+            {projections.map((_, index) => (
+              <TableHead key={index} className="px-4 py-3 text-right font-medium text-foreground">
+                Tahun ke-{index}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">COGS OTC</TableCell>
+            <TableCell className="px-4 py-3 text-right" data-testid="cogs-total-otc">{formatCurrency(totals.otcCogs)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`cogs-otc-year-${index}`}>
+                {formatCurrency(p.otcCogs)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">COGS Bulanan</TableCell>
+            <TableCell className="px-4 py-3 text-right" data-testid="cogs-total-monthly">{formatCurrency(totals.monthlyCogs)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`cogs-monthly-year-${index}`}>
+                {formatCurrency(p.monthlyCogs)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow className="border-t-2 border-primary">
+            <TableCell className="px-4 py-3 font-bold text-primary">Total COGS</TableCell>
+            <TableCell className="px-4 py-3 text-right font-bold text-primary" data-testid="cogs-total-all">{formatCurrency(totals.totalCogs)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className="px-4 py-3 text-right font-bold text-primary" data-testid={`cogs-total-year-${index}`}>
+                {formatCurrency(p.totalCogs)}
               </TableCell>
             ))}
           </TableRow>
