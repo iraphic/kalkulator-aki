@@ -1,4 +1,5 @@
 export interface FinancialInputs {
+  customerName: string;
   investmentCost: number;
   monthlyRevenue: number;
   contractPeriod: number;

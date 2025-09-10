@@ -11,6 +11,7 @@ import { saveAs } from 'file-saver';
 
 export default function FinancialAnalysis() {
   const [inputs, setInputs] = useState<FinancialInputs>({
+    customerName: "",
     investmentCost: 0,
     monthlyRevenue: 0,
     contractPeriod: 0,
@@ -19,6 +20,7 @@ export default function FinancialAnalysis() {
 
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [inputValues, setInputValues] = useState({
+    customerName: "",
     investmentCost: "",
     monthlyRevenue: "",
     contractPeriod: "",
@@ -28,7 +30,9 @@ export default function FinancialAnalysis() {
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
     setInputValues(prev => ({ ...prev, [field]: value }));
     
-    if (field === 'contractPeriod') {
+    if (field === 'customerName') {
+      setInputs(prev => ({ ...prev, [field]: value }));
+    } else if (field === 'contractPeriod') {
       const numValue = parseInt(value) || 0;
       setInputs(prev => ({ ...prev, [field]: numValue }));
     } else {
@@ -38,7 +42,7 @@ export default function FinancialAnalysis() {
   };
 
   const calculateAnalysis = () => {
-    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
+    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
       const calculatedResults = calculateFinancialAnalysis(inputs);
       setResults(calculatedResults);
     }
@@ -110,7 +114,7 @@ export default function FinancialAnalysis() {
 
 
   useEffect(() => {
-    if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
+    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
       calculateAnalysis();
     }
   }, [inputs]);
@@ -155,6 +159,23 @@ export default function FinancialAnalysis() {
               {/* User Inputs */}
               <div className="lg:col-span-3">
                 <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
+                
+                {/* Customer Name Input */}
+                <div className="mb-6">
+                  <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
+                    Nama Pelanggan
+                  </Label>
+                  <Input
+                    type="text"
+                    id="customer-name"
+                    placeholder="Masukkan nama pelanggan"
+                    value={inputValues.customerName}
+                    onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    className="w-full"
+                    data-testid="input-customer-name"
+                  />
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <div>
                     <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
