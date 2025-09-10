@@ -143,43 +143,43 @@ export function CashFlowTable({ projections }: CashFlowTableProps) {
         <TableBody>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Net Income</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="cf-total-net-income">{formatCurrency(totals.netIncome)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.netIncome < 0 ? 'text-red-600' : ''}`} data-testid="cf-total-net-income">{formatCurrency(totals.netIncome)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`cf-net-income-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.netIncome < 0 ? 'text-red-600' : ''}`} data-testid={`cf-net-income-year-${index}`}>
                 {formatCurrency(p.netIncome)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">Add Back Depresiasi</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="cf-total-depreciation">{formatCurrency(totals.addBackDepreciation)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.addBackDepreciation < 0 ? 'text-red-600' : ''}`} data-testid="cf-total-depreciation">{formatCurrency(totals.addBackDepreciation)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`cf-depreciation-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.addBackDepreciation < 0 ? 'text-red-600' : ''}`} data-testid={`cf-depreciation-year-${index}`}>
                 {formatCurrency(p.addBackDepreciation)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">TOTAL CASH INFLOW</TableCell>
-            <TableCell className="px-4 py-3 text-right font-bold" data-testid="cf-total-inflow">{formatCurrency(totals.totalCashInflow)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right font-bold ${totals.totalCashInflow < 0 ? 'text-red-600' : ''}`} data-testid="cf-total-inflow">{formatCurrency(totals.totalCashInflow)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right font-bold" data-testid={`cf-inflow-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right font-bold ${p.totalCashInflow < 0 ? 'text-red-600' : ''}`} data-testid={`cf-inflow-year-${index}`}>
                 {formatCurrency(p.totalCashInflow)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-medium">CAPEX</TableCell>
-            <TableCell className="px-4 py-3 text-right" data-testid="cf-total-capex">{formatCurrency(totals.capex)}</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.capex < 0 ? 'text-red-600' : ''}`} data-testid="cf-total-capex">{formatCurrency(totals.capex)}</TableCell>
             {projections.map((p, index) => (
-              <TableCell key={index} className="px-4 py-3 text-right" data-testid={`cf-capex-year-${index}`}>
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.capex < 0 ? 'text-red-600' : ''}`} data-testid={`cf-capex-year-${index}`}>
                 {formatCurrency(p.capex)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow className="border-t-2 border-primary">
             <TableCell className="px-4 py-3 font-bold">Net Cash Flow</TableCell>
-            <TableCell className="px-4 py-3 text-right font-bold positive-metric" data-testid="cf-total-net-flow">
+            <TableCell className={`px-4 py-3 text-right font-bold ${totals.netCashFlow < 0 ? 'text-red-600' : 'positive-metric'}`} data-testid="cf-total-net-flow">
               {formatCurrency(totals.netCashFlow)}
             </TableCell>
             {projections.map((p, index) => (
