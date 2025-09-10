@@ -2,6 +2,7 @@ export interface FinancialInputs {
   investmentCost: number;
   monthlyRevenue: number;
   contractPeriod: number;
+  otcCost: number;
 }
 
 export interface YearlyProjection {
@@ -36,6 +37,9 @@ export interface CalculationResults {
   totalRevenue: number;
   otcRevenue: number;
   monthlyTotal: number;
+  otcCogs: number;
+  monthlyCogs: number;
+  totalCogs: number;
   costIBL: number;
   costOBL: number;
   totalOpex: number;
@@ -58,12 +62,17 @@ const OPERATIONAL_RATE = 0.20; // 20%
 const DEPRECIATION_YEARS = 6;
 
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
-  const { investmentCost, monthlyRevenue, contractPeriod } = inputs;
+  const { investmentCost, monthlyRevenue, contractPeriod, otcCost } = inputs;
 
   // Basic calculations
   const otcRevenue = monthlyRevenue * 2.5; // OTC is 2.5x monthly
   const monthlyTotal = monthlyRevenue * contractPeriod;
   const totalRevenue = otcRevenue + monthlyTotal;
+
+  // COGS calculations (70% of price)
+  const otcCogs = otcRevenue * 0.7;
+  const monthlyCogs = monthlyTotal * 0.7;
+  const totalCogs = otcCogs + monthlyCogs;
 
   // Costs
   const costIBL = totalRevenue; // Same as revenue for IBL
@@ -145,6 +154,9 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     totalRevenue,
     otcRevenue,
     monthlyTotal,
+    otcCogs,
+    monthlyCogs,
+    totalCogs,
     costIBL,
     costOBL,
     totalOpex,
