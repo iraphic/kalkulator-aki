@@ -238,6 +238,24 @@ export default function FinancialAnalysis() {
               </div>
             </div>
 
+            {/* Excel Download Button - Moved to Top */}
+            {results && (
+              <div className="mt-6 pt-6 border-t border-border">
+                <div className="flex justify-center">
+                  <Button 
+                    onClick={() => exportToExcel(results, inputs)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
+                    data-testid="button-export-excel"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
+                    </svg>
+                    Download Excel
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </CardContent>
         </Card>
 
@@ -438,23 +456,6 @@ export default function FinancialAnalysis() {
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-                <CardTitle className="text-lg font-semibold">Download Laporan</CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <Button 
-                    onClick={() => exportToExcel(results, inputs)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
-                    data-testid="button-export-excel"
-                  >
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
-                    </svg>
-                    Download Excel
-                  </Button>
                 </div>
               </CardContent>
             </Card>
