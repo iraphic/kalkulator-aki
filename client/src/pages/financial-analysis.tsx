@@ -44,6 +44,159 @@ export default function FinancialAnalysis() {
     }
   };
 
+  const exportToExcel = (results: CalculationResults, inputs: FinancialInputs) => {
+    const wb = XLSX.utils.book_new();
+    
+    // Input Summary Sheet
+    const inputData = [
+      ['Parameter', 'Nilai'],
+      ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
+      ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
+      ['Periode (Bulan)', inputs.contractPeriod],
+      ['WACC', '17.8%'],
+      ['Tax', '11%'],
+      ['', ''],
+      ['Hasil Perhitungan', ''],
+      ['Total Revenue', formatCurrency(results.totalRevenue)],
+      ['OTC Revenue', formatCurrency(results.otcRevenue)],
+      ['Monthly Total', formatCurrency(results.monthlyTotal)],
+      ['Cost IBL', formatCurrency(results.costIBL)],
+      ['Cost OBL', formatCurrency(results.costOBL)],
+      ['Total OPEX', formatCurrency(results.totalOpex)],
+      ['NPV', formatCurrency(results.npv)],
+      ['IRR', formatPercentage(results.irr)],
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`]
+    ];
+    
+    const wsInput = XLSX.utils.aoa_to_sheet(inputData);
+    XLSX.utils.book_append_sheet(wb, wsInput, 'Input & Summary');
+    
+    // Profit & Loss Sheet
+    const plHeaders = ['Label', 'Jumlah', ...results.yearlyProjections.map((_, i) => `Tahun ke-${i}`)];
+    const plData = [
+      plHeaders,
+      ['Revenue', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.revenue, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.revenue))],
+      ['Bad Debt', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.badDebt, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.badDebt))],
+      ['OPEX', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.opex, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.opex))],
+      ['EBITDA', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebitda, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebitda))],
+      ['Depresiasi', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.depreciation, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.depreciation))],
+      ['EBIT', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebit, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebit))],
+      ['Pajak', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.tax, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.tax))],
+      ['Net Income', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.netIncome))]
+    ];
+    
+    const wsPL = XLSX.utils.aoa_to_sheet(plData);
+    XLSX.utils.book_append_sheet(wb, wsPL, 'Profit & Loss');
+    
+    // Cash Flow Sheet
+    const cfHeaders = ['Label', 'Jumlah', ...results.cashFlowProjections.map((_, i) => `Tahun ke-${i}`)];
+    const cfData = [
+      cfHeaders,
+      ['Net Income', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netIncome))],
+      ['Add Back Depresiasi', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.addBackDepreciation, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.addBackDepreciation))],
+      ['TOTAL CASH INFLOW', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.totalCashInflow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.totalCashInflow))],
+      ['CAPEX', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.capex, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.capex))],
+      ['Net Cash Flow', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netCashFlow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netCashFlow))],
+      ['Cum Cash Flow', '', ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
+    ];
+    
+    const wsCF = XLSX.utils.aoa_to_sheet(cfData);
+    XLSX.utils.book_append_sheet(wb, wsCF, 'Cash Flow');
+    
+    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/octet-stream' });
+    saveAs(blob, 'Analisis_Kelayakan_Investasi.xlsx');
+  };
+
+  const exportToPDF = (results: CalculationResults, inputs: FinancialInputs) => {
+    const doc = new jsPDF();
+    
+    // Title
+    doc.setFontSize(16);
+    doc.text('Analisis Kelayakan Investasi', 20, 20);
+    
+    // Input Parameters
+    doc.setFontSize(12);
+    doc.text('Parameter Input:', 20, 40);
+    
+    const inputTable = [
+      ['Parameter', 'Nilai'],
+      ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
+      ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
+      ['Periode (Bulan)', inputs.contractPeriod.toString()],
+      ['WACC', '17.8%'],
+      ['Tax', '11%']
+    ];
+    
+    (doc as any).autoTable({
+      head: [inputTable[0]],
+      body: inputTable.slice(1),
+      startY: 45,
+      theme: 'grid'
+    });
+    
+    // Results Summary
+    const currentY = (doc as any).lastAutoTable.finalY + 20;
+    doc.text('Hasil Analisis:', 20, currentY);
+    
+    const resultsTable = [
+      ['Metrik', 'Nilai', 'Status'],
+      ['NPV', formatCurrency(results.npv), results.npv > 0 ? 'Layak' : 'Tidak Layak'],
+      ['IRR', formatPercentage(results.irr), results.irr > 17.8 ? 'Layak' : 'Tidak Layak'],
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, '']
+    ];
+    
+    (doc as any).autoTable({
+      head: [resultsTable[0]],
+      body: resultsTable.slice(1),
+      startY: currentY + 5,
+      theme: 'grid'
+    });
+    
+    // Add new page for tables
+    doc.addPage();
+    
+    // Profit & Loss Table
+    doc.text('Tabel Proyeksi Profit & Loss', 20, 20);
+    
+    const plHeaders = ['Label', 'Jumlah', ...results.yearlyProjections.map((_, i) => `Tahun ${i}`)];
+    const plData = [
+      ['Revenue', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.revenue, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.revenue))],
+      ['Bad Debt', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.badDebt, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.badDebt))],
+      ['OPEX', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.opex, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.opex))],
+      ['EBITDA', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebitda, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebitda))],
+      ['Net Income', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.netIncome))]
+    ];
+    
+    (doc as any).autoTable({
+      head: [plHeaders],
+      body: plData,
+      startY: 30,
+      theme: 'grid',
+      styles: { fontSize: 8 }
+    });
+    
+    // Cash Flow Table
+    const cfCurrentY = (doc as any).lastAutoTable.finalY + 20;
+    doc.text('Cash Flow Projection', 20, cfCurrentY);
+    
+    const cfHeaders = ['Label', 'Jumlah', ...results.cashFlowProjections.map((_, i) => `Tahun ${i}`)];
+    const cfData = [
+      ['Net Cash Flow', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netCashFlow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netCashFlow))],
+      ['Cum Cash Flow', '', ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
+    ];
+    
+    (doc as any).autoTable({
+      head: [cfHeaders],
+      body: cfData,
+      startY: cfCurrentY + 10,
+      theme: 'grid',
+      styles: { fontSize: 8 }
+    });
+    
+    doc.save('Analisis_Kelayakan_Investasi.pdf');
+  };
+
   useEffect(() => {
     if (inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0) {
       calculateAnalysis();
