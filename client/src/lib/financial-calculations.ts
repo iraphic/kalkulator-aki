@@ -27,6 +27,13 @@ export interface CashFlowProjection {
   cumulativeCashFlow: number;
 }
 
+export interface CogsProjection {
+  year: number;
+  otcCogs: number;
+  monthlyCogs: number;
+  totalCogs: number;
+}
+
 export interface PaybackPeriod {
   years: number;
   months: number;
@@ -47,6 +54,7 @@ export interface CalculationResults {
   operationalCost: number;
   yearlyProjections: YearlyProjection[];
   cashFlowProjections: CashFlowProjection[];
+  cogsProjections: CogsProjection[];
   npv: number;
   irr: number;
   paybackPeriod: PaybackPeriod;
@@ -119,6 +127,30 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     });
   }
 
+  // COGS projections
+  const cogsProjections: CogsProjection[] = [];
+  
+  for (let year = 0; year <= 6; year++) {
+    let yearlyOtcCogs = 0;
+    let yearlyMonthlyCogs = 0;
+    
+    if (year === 0) {
+      yearlyOtcCogs = otcCogs;
+    } else if (year <= Math.ceil(contractPeriod / 12)) {
+      const yearlyMonthlyRevenue = Math.min(monthlyRevenue * 12, monthlyTotal - (monthlyRevenue * 12 * (year - 1)));
+      yearlyMonthlyCogs = yearlyMonthlyRevenue * 0.7;
+    }
+    
+    const yearlyTotalCogs = yearlyOtcCogs + yearlyMonthlyCogs;
+    
+    cogsProjections.push({
+      year,
+      otcCogs: yearlyOtcCogs,
+      monthlyCogs: yearlyMonthlyCogs,
+      totalCogs: yearlyTotalCogs,
+    });
+  }
+
   // Cash flow projections
   const cashFlowProjections: CashFlowProjection[] = [];
   let cumulativeCashFlow = 0;
@@ -164,6 +196,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     operationalCost,
     yearlyProjections,
     cashFlowProjections,
+    cogsProjections,
     npv,
     irr: irr * 100, // Convert to percentage
     paybackPeriod,
