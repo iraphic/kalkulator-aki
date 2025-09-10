@@ -6,6 +6,10 @@ import { Label } from "@/components/ui/label";
 import { ProfitLossTable, CashFlowTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency } from "@/lib/currency-utils";
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { saveAs } from 'file-saver';
 
 export default function FinancialAnalysis() {
   const [inputs, setInputs] = useState<FinancialInputs>({
@@ -309,12 +313,46 @@ export default function FinancialAnalysis() {
                       </div>
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                         <div className="font-medium text-blue-800 mb-1">Payback Period</div>
-                        <p className="text-blue-700">
-                          Berdasarkan cumulative cash flow, investasi akan kembali pada sekitar tahun ke-5.
+                        <div className="text-2xl font-bold text-blue-800 mb-2" data-testid="payback-period">
+                          {results.paybackPeriod.years} tahun {results.paybackPeriod.months} bulan
+                        </div>
+                        <p className="text-blue-700 text-sm">
+                          Investasi akan kembali dalam {results.paybackPeriod.totalMonths} bulan
                         </p>
                       </div>
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Export Buttons */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Download Laporan</CardTitle>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <Button 
+                    onClick={() => exportToExcel(results, inputs)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
+                    data-testid="button-export-excel"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
+                    </svg>
+                    Download Excel
+                  </Button>
+                  <Button 
+                    onClick={() => exportToPDF(results, inputs)}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-md font-medium flex items-center gap-2"
+                    data-testid="button-export-pdf"
+                  >
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm2 4h8v2H6V6zm0 4h8v2H6v-2zm0 4h8v2H6v-2z"/>
+                    </svg>
+                    Download PDF
+                  </Button>
                 </div>
               </CardContent>
             </Card>
