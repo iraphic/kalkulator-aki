@@ -293,10 +293,10 @@ export default function FinancialAnalysis() {
                     <div className="bg-accent p-4 rounded-md">
                       <div className="text-sm text-muted-foreground mb-2">OPEX (Operasional + Marketing)</div>
                       <div className="font-bold text-lg" data-testid="info-opex">
-                        25% | ({formatCurrency(results.totalOpex)})
+                        50% | ({formatCurrency(results.totalOpex)})
                       </div>
                       <div className="text-sm space-y-1 mt-2">
-                        <div>Biaya Marketing: 5% ({formatCurrency(results.marketingCost)})</div>
+                        <div>Biaya Marketing: 30% ({formatCurrency(results.marketingCost)})</div>
                         <div>Biaya Operasional: 20% ({formatCurrency(results.operationalCost)})</div>
                       </div>
                     </div>
