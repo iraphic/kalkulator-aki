@@ -54,9 +54,11 @@ export default function FinancialAnalysis() {
     // Input Summary Sheet
     const inputData = [
       ['Parameter', 'Nilai'],
+      ['Nama Pelanggan', inputs.customerName],
       ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
       ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
       ['Periode (Bulan)', inputs.contractPeriod],
+      ['Biaya OTC', formatCurrency(inputs.otcCost)],
       ['WACC', '17.8%'],
       ['Tax', '11%'],
       ['', ''],
@@ -236,15 +238,6 @@ export default function FinancialAnalysis() {
               </div>
             </div>
 
-            <div className="mt-6">
-              <Button 
-                onClick={calculateAnalysis}
-                className="bg-primary text-primary-foreground px-6 py-2 rounded-md hover:opacity-90 transition-opacity font-medium"
-                data-testid="button-calculate"
-              >
-                Hitung Analisis
-              </Button>
-            </div>
           </CardContent>
         </Card>
 
@@ -448,10 +441,6 @@ export default function FinancialAnalysis() {
                 </div>
               </CardContent>
             </Card>
-
-            {/* Export Buttons */}
-            <Card>
-              <CardHeader className="bg-primary text-primary-foreground">
                 <CardTitle className="text-lg font-semibold">Download Laporan</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
