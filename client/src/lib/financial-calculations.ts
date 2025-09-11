@@ -69,6 +69,7 @@ const BAD_DEBT_RATE = 0.05; // 5%
 const MARKETING_RATE = 0.30; // 30%
 const OPERATIONAL_RATE = 0.20; // 20%
 const DEPRECIATION_YEARS = 6;
+const CAPEX_ADDITIONAL = 0.007; // 0.70% for unexpected costs
 
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
   const { investmentCost, monthlyRevenue, contractPeriod, otcCost } = inputs;
@@ -87,13 +88,19 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   const costIBL = totalRevenue; // Same as revenue for IBL
   const costOBL = 0; // No OBL costs
   
-  // OPEX calculations
-  const marketingCost = totalRevenue * MARKETING_RATE;
-  const operationalCost = investmentCost * OPERATIONAL_RATE;
-  const totalOpex = marketingCost + operationalCost;
+  // OPEX calculations - updated per user requirements
+  // Marketing cost: 30% of monthly revenue only (without OTC)
+  const marketingCost = monthlyTotal * MARKETING_RATE;
+  
+  // Total OPEX: 50% of total revenue (tax is calculated separately)
+  const totalOpex = totalRevenue * 0.50;
+  
+  // Operational cost: remainder after marketing cost
+  const operationalCost = totalOpex - marketingCost;
 
-  // Depreciation
-  const annualDepreciation = investmentCost / DEPRECIATION_YEARS;
+  // Depreciation - based on actual CAPEX including additional costs
+  const actualCapex = investmentCost * (1 + CAPEX_ADDITIONAL);
+  const annualDepreciation = actualCapex / DEPRECIATION_YEARS;
 
   // Yearly projections
   const yearlyProjections: YearlyProjection[] = [];
@@ -158,7 +165,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
 
   for (let year = 0; year <= 6; year++) {
     const projection = yearlyProjections[year];
-    const capex = year === 0 ? investmentCost : 0;
+    const capex = year === 0 ? investmentCost * (1 + CAPEX_ADDITIONAL) : 0;
     const totalCashInflow = projection.netIncome + projection.depreciation;
     const netCashFlow = totalCashInflow - capex;
     cumulativeCashFlow += netCashFlow;
