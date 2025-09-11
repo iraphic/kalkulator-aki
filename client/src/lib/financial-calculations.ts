@@ -92,11 +92,11 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   // Marketing cost: 30% of monthly revenue only (without OTC)
   const marketingCost = monthlyTotal * MARKETING_RATE;
   
-  // Total OPEX: 50% of total revenue (tax is calculated separately)
-  const totalOpex = totalRevenue * 0.50;
+  // Operational cost: 20% of total revenue
+  const operationalCost = totalRevenue * OPERATIONAL_RATE;
   
-  // Operational cost: remainder after marketing cost
-  const operationalCost = totalOpex - marketingCost;
+  // Total OPEX: marketing + operational costs
+  const totalOpex = marketingCost + operationalCost;
 
   // Depreciation - based on actual CAPEX including additional costs
   const actualCapex = investmentCost * (1 + CAPEX_ADDITIONAL);
