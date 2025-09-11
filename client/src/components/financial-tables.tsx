@@ -124,6 +124,7 @@ export function CashFlowTable({ projections }: CashFlowTableProps) {
     totalCashInflow: projections.reduce((sum, p) => sum + p.totalCashInflow, 0),
     capex: projections.reduce((sum, p) => sum + p.capex, 0),
     netCashFlow: projections.reduce((sum, p) => sum + p.netCashFlow, 0),
+    cumulativeCashFlow: projections.length > 0 ? projections[projections.length - 1].cumulativeCashFlow : 0,
   };
 
   return (
@@ -192,7 +193,9 @@ export function CashFlowTable({ projections }: CashFlowTableProps) {
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-bold">Cum Cash Flow</TableCell>
-            <TableCell className="px-4 py-3 text-right font-bold"></TableCell>
+            <TableCell className={`px-4 py-3 text-right font-bold ${totals.cumulativeCashFlow < 0 ? 'text-red-600' : 'positive-metric'}`} data-testid="cf-total-cumulative">
+              {formatCurrency(totals.cumulativeCashFlow)}
+            </TableCell>
             {projections.map((p, index) => (
               <TableCell key={index} className="px-4 py-3 text-right font-bold" data-testid={`cf-cumulative-year-${index}`}>
                 <span className={p.cumulativeCashFlow < 0 ? "text-red-600" : "positive-metric"}>
