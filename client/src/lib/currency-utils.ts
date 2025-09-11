@@ -19,3 +19,13 @@ export function parseCurrency(value: string): number {
 export function formatNumber(value: number): string {
   return new Intl.NumberFormat('id-ID').format(value);
 }
+
+export function formatInputCurrency(value: string): string {
+  // Remove all non-digit characters
+  const cleaned = value.replace(/[^0-9]/g, '');
+  if (!cleaned) return '';
+  
+  // Format with thousands separators
+  const number = parseInt(cleaned);
+  return new Intl.NumberFormat('id-ID').format(number);
+}
