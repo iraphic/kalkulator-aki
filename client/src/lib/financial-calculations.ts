@@ -64,7 +64,7 @@ export interface CalculationResults {
 
 // Constants
 const WACC = 0.178; // 17.8%
-const TAX_RATE = 0.25; // 25%
+const TAX_RATE = 0.24; // 24%
 const BAD_DEBT_RATE = 0.05; // 5%
 const MARKETING_RATE = 0.30; // 30%
 const OPERATIONAL_RATE = 0.20; // 20%
@@ -92,8 +92,8 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   // Marketing cost: 30% of monthly revenue only (without OTC)
   const marketingCost = monthlyTotal * MARKETING_RATE;
   
-  // Operational cost: 20% of monthly revenue (without OTC)
-  const operationalCost = monthlyTotal * OPERATIONAL_RATE;
+  // Operational cost: 20% of total revenue
+  const operationalCost = totalRevenue * OPERATIONAL_RATE;
   
   // Total OPEX: marketing + operational costs
   const totalOpex = marketingCost + operationalCost;
