@@ -394,7 +394,7 @@ export default function FinancialAnalysis() {
                           <p className="text-sm text-green-600 mt-1">Nilai sekarang dari arus kas masa depan</p>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-green-800 positive-metric" data-testid="npv-value">
+                          <div className={`text-2xl font-bold ${results.npv <= 0 ? 'text-red-800' : 'text-green-800'} positive-metric`} data-testid="npv-value">
                             {formatCurrency(results.npv)}
                           </div>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
