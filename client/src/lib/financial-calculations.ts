@@ -64,7 +64,7 @@ export interface CalculationResults {
 
 // Constants
 const WACC = 0.178; // 17.8%
-const TAX_RATE = 0.27; // 27%
+const TAX_RATE = 0.26; // 26%
 const BAD_DEBT_RATE = 0.05; // 5%
 const MARKETING_RATE = 0.30; // 30%
 const OPERATIONAL_RATE = 0.20; // 20%
