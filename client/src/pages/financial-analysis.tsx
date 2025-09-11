@@ -63,7 +63,7 @@ export default function FinancialAnalysis() {
       ['Periode (Bulan)', inputs.contractPeriod],
       ['Biaya OTC', formatCurrency(inputs.otcCost)],
       ['WACC', '17.8%'],
-      ['Tax', '27%'],
+      ['Tax', '25%'],
       ['', ''],
       ['Hasil Perhitungan', ''],
       ['Total Revenue', formatCurrency(results.totalRevenue)],
@@ -155,7 +155,7 @@ export default function FinancialAnalysis() {
                   <div>
                     <Label className="block text-sm text-muted-foreground">Tax</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
-                      27%
+                      25%
                     </div>
                   </div>
                 </div>
@@ -341,7 +341,7 @@ export default function FinancialAnalysis() {
                       </div>
                       <div className="text-sm space-y-1 mt-2">
                         <div>Biaya Marketing: 30% dari revenue bulanan ({formatCurrency(results.marketingCost)})</div>
-                        <div>Biaya Operasional: 20% dari total revenue ({formatCurrency(results.operationalCost)})</div>
+                        <div>Biaya Operasional: 20% dari revenue bulanan ({formatCurrency(results.operationalCost)})</div>
                       </div>
                     </div>
                   </div>
