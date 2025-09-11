@@ -63,7 +63,7 @@ export default function FinancialAnalysis() {
       ['Periode (Bulan)', inputs.contractPeriod],
       ['Biaya OTC', formatCurrency(inputs.otcCost)],
       ['WACC', '17.8%'],
-      ['Tax', '25%'],
+      ['Tax', '27%'],
       ['', ''],
       ['Hasil Perhitungan', ''],
       ['Total Revenue', formatCurrency(results.totalRevenue)],
@@ -155,7 +155,7 @@ export default function FinancialAnalysis() {
                   <div>
                     <Label className="block text-sm text-muted-foreground">Tax</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
-                      25%
+                      27%
                     </div>
                   </div>
                 </div>
