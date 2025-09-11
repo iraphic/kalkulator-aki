@@ -337,11 +337,11 @@ export default function FinancialAnalysis() {
                     <div className="bg-accent p-4 rounded-md">
                       <div className="text-sm text-muted-foreground mb-2">OPEX (Operasional + Marketing)</div>
                       <div className="font-bold text-lg" data-testid="info-opex">
-                        50% | ({formatCurrency(results.totalOpex)})
+                        Total: ({formatCurrency(results.totalOpex)})
                       </div>
                       <div className="text-sm space-y-1 mt-2">
-                        <div>Biaya Marketing: 30% ({formatCurrency(results.marketingCost)})</div>
-                        <div>Biaya Operasional: 20% ({formatCurrency(results.operationalCost)})</div>
+                        <div>Biaya Marketing: 30% dari revenue bulanan ({formatCurrency(results.marketingCost)})</div>
+                        <div>Biaya Operasional: 20% dari total revenue ({formatCurrency(results.operationalCost)})</div>
                       </div>
                     </div>
                   </div>
