@@ -64,7 +64,7 @@ export interface CalculationResults {
 
 // Constants
 const WACC = 0.178; // 17.8%
-const TAX_RATE = 0.22; // 22%
+const TAX_RATE = 0.30; // 30%
 const BAD_DEBT_RATE = 0.05; // 5%
 const MARKETING_RATE = 0.30; // 30%
 const OPERATIONAL_RATE = 0.20; // 20%
@@ -88,12 +88,16 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   const costIBL = totalRevenue; // Same as revenue for IBL
   const costOBL = 0; // No OBL costs
   
-  // OPEX calculations - updated per user requirements
+  // Calculate preliminary NPV for OPEX calculation (without NPV component in OPEX)
+  const preliminaryNPV = calculatePreliminaryNPV(inputs, totalRevenue, monthlyTotal, investmentCost);
+  
+  // OPEX calculations - updated per user requirements including NPV
   // Marketing cost: 30% of monthly revenue only (without OTC)
   const marketingCost = monthlyTotal * MARKETING_RATE;
   
-  // Total OPEX: 50% of total revenue (tax is calculated separately)
-  const totalOpex = totalRevenue * 0.50;
+  // Total OPEX: 50% of total revenue + 10% of NPV (if positive)
+  const npvComponent = preliminaryNPV > 0 ? preliminaryNPV * 0.10 : 0;
+  const totalOpex = (totalRevenue * 0.50) + npvComponent;
   
   // Operational cost: remainder after marketing cost
   const operationalCost = totalOpex - marketingCost;
@@ -244,6 +248,45 @@ function calculateIRR(cashFlows: number[]): number {
   }
 
   return rate;
+}
+
+function calculatePreliminaryNPV(inputs: FinancialInputs, totalRevenue: number, monthlyTotal: number, investmentCost: number): number {
+  // Calculate OPEX without NPV component for preliminary calculation
+  const preliminaryMarketingCost = monthlyTotal * MARKETING_RATE;
+  const preliminaryTotalOpex = totalRevenue * 0.50; // Base 50% without NPV component
+  const preliminaryOperationalCost = preliminaryTotalOpex - preliminaryMarketingCost;
+  
+  // Calculate preliminary cash flows
+  const actualCapex = investmentCost * (1 + CAPEX_ADDITIONAL);
+  const annualDepreciation = actualCapex / DEPRECIATION_YEARS;
+  
+  const preliminaryCashFlows: number[] = [];
+  
+  for (let year = 0; year <= 6; year++) {
+    let yearlyRevenue = 0;
+    
+    if (year === 0) {
+      yearlyRevenue = inputs.otcCost;
+    } else if (year <= Math.ceil(inputs.contractPeriod / 12)) {
+      yearlyRevenue = Math.min(inputs.monthlyRevenue * 12, monthlyTotal - (inputs.monthlyRevenue * 12 * (year - 1)));
+    }
+
+    const badDebt = yearlyRevenue * BAD_DEBT_RATE;
+    const yearlyOpex = year === 0 ? 0 : (preliminaryMarketingCost + preliminaryOperationalCost) / 6;
+    const ebitda = yearlyRevenue - badDebt - yearlyOpex;
+    const depreciation = year === 0 ? 0 : annualDepreciation;
+    const ebit = ebitda - depreciation;
+    const tax = ebit * TAX_RATE;
+    const netIncome = ebit - tax;
+    
+    const capex = year === 0 ? actualCapex : 0;
+    const totalCashInflow = netIncome + depreciation;
+    const netCashFlow = totalCashInflow - capex;
+    
+    preliminaryCashFlows.push(netCashFlow);
+  }
+  
+  return calculateNPV(preliminaryCashFlows, WACC);
 }
 
 function calculatePaybackPeriod(cashFlowProjections: CashFlowProjection[]): PaybackPeriod {
