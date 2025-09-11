@@ -74,7 +74,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   const { investmentCost, monthlyRevenue, contractPeriod, otcCost } = inputs;
 
   // Basic calculations
-  const otcRevenue = monthlyRevenue * 2.5; // OTC is 2.5x monthly
+  const otcRevenue = otcCost; // Use actual OTC cost from user input
   const monthlyTotal = monthlyRevenue * contractPeriod;
   const totalRevenue = otcRevenue + monthlyTotal;
 
