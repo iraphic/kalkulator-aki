@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ProfitLossTable, CashFlowTable, CogsTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
-import { formatCurrency, formatPercentage, parseCurrency } from "@/lib/currency-utils";
+import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -28,14 +28,17 @@ export default function FinancialAnalysis() {
   });
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
-    setInputValues(prev => ({ ...prev, [field]: value }));
-    
     if (field === 'customerName') {
+      setInputValues(prev => ({ ...prev, [field]: value }));
       setInputs(prev => ({ ...prev, [field]: value }));
     } else if (field === 'contractPeriod') {
+      setInputValues(prev => ({ ...prev, [field]: value }));
       const numValue = parseInt(value) || 0;
       setInputs(prev => ({ ...prev, [field]: numValue }));
     } else {
+      // For currency fields, format the display value with thousands separators
+      const formattedValue = formatInputCurrency(value);
+      setInputValues(prev => ({ ...prev, [field]: formattedValue }));
       const numValue = parseCurrency(value);
       setInputs(prev => ({ ...prev, [field]: numValue }));
     }
@@ -183,29 +186,35 @@ export default function FinancialAnalysis() {
                     <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
                       Biaya Investasi (BOQ)
                     </Label>
-                    <Input
-                      type="text"
-                      id="investment"
-                      placeholder="Rp 0"
-                      value={inputValues.investmentCost}
-                      onChange={(e) => handleInputChange('investmentCost', e.target.value)}
-                      className="currency-input"
-                      data-testid="input-investment"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        id="investment"
+                        placeholder="0"
+                        value={inputValues.investmentCost}
+                        onChange={(e) => handleInputChange('investmentCost', e.target.value)}
+                        className="currency-input pl-8"
+                        data-testid="input-investment"
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
                       Pendapatan per Bulan
                     </Label>
-                    <Input
-                      type="text"
-                      id="revenue"
-                      placeholder="Rp 0"
-                      value={inputValues.monthlyRevenue}
-                      onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
-                      className="currency-input"
-                      data-testid="input-revenue"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        id="revenue"
+                        placeholder="0"
+                        value={inputValues.monthlyRevenue}
+                        onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
+                        className="currency-input pl-8"
+                        data-testid="input-revenue"
+                      />
+                    </div>
                   </div>
                   <div>
                     <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
@@ -224,15 +233,18 @@ export default function FinancialAnalysis() {
                     <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
                       Biaya OTC
                     </Label>
-                    <Input
-                      type="text"
-                      id="otc-cost"
-                      placeholder="Rp 0"
-                      value={inputValues.otcCost}
-                      onChange={(e) => handleInputChange('otcCost', e.target.value)}
-                      className="currency-input"
-                      data-testid="input-otc-cost"
-                    />
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        id="otc-cost"
+                        placeholder="0"
+                        value={inputValues.otcCost}
+                        onChange={(e) => handleInputChange('otcCost', e.target.value)}
+                        className="currency-input pl-8"
+                        data-testid="input-otc-cost"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
