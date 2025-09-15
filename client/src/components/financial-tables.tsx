@@ -1,6 +1,6 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency, formatPercentage } from "@/lib/currency-utils";
-import { YearlyProjection, CashFlowProjection, CogsProjection } from "@/lib/financial-calculations";
+import { YearlyProjection, CashFlowProjection, CogsProjection, OpexProjection, CalculationResults } from "@/lib/financial-calculations";
 
 interface ProfitLossTableProps {
   projections: YearlyProjection[];
@@ -263,6 +263,326 @@ export function CogsTable({ projections }: CogsTableProps) {
                 {formatCurrency(p.totalCogs)}
               </TableCell>
             ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// OPEX Table Component
+interface OpexTableProps {
+  projections: OpexProjection[];
+}
+
+export function OpexTable({ projections }: OpexTableProps) {
+  const totals = {
+    marketingCost: projections.reduce((sum, p) => sum + p.marketingCost, 0),
+    operationalCost: projections.reduce((sum, p) => sum + p.operationalCost, 0),
+    totalOpex: projections.reduce((sum, p) => sum + p.totalOpex, 0),
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-primary text-primary-foreground">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium">Label</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium">Jumlah</TableHead>
+            {projections.map((_, index) => (
+              <TableHead key={index} className="px-4 py-3 text-right font-medium">
+                Tahun ke-{index}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">Marketing Cost</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.marketingCost < 0 ? 'text-red-600' : ''}`} data-testid="opex-total-marketing">{formatCurrency(totals.marketingCost)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.marketingCost < 0 ? 'text-red-600' : ''}`} data-testid={`opex-marketing-year-${index}`}>
+                {formatCurrency(p.marketingCost)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">Operational Cost</TableCell>
+            <TableCell className={`px-4 py-3 text-right ${totals.operationalCost < 0 ? 'text-red-600' : ''}`} data-testid="opex-total-operational">{formatCurrency(totals.operationalCost)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className={`px-4 py-3 text-right ${p.operationalCost < 0 ? 'text-red-600' : ''}`} data-testid={`opex-operational-year-${index}`}>
+                {formatCurrency(p.operationalCost)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow className="border-t-2 border-primary">
+            <TableCell className="px-4 py-3 font-bold text-primary">Total OPEX</TableCell>
+            <TableCell className={`px-4 py-3 text-right font-bold ${totals.totalOpex < 0 ? 'text-red-600' : 'text-primary'}`} data-testid="opex-total-all">{formatCurrency(totals.totalOpex)}</TableCell>
+            {projections.map((p, index) => (
+              <TableCell key={index} className={`px-4 py-3 text-right font-bold ${p.totalOpex < 0 ? 'text-red-600' : 'text-primary'}`} data-testid={`opex-total-year-${index}`}>
+                {formatCurrency(p.totalOpex)}
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// Revenue & P&L Summary Table Component
+interface PLSummaryTableProps {
+  results: CalculationResults;
+}
+
+export function PLSummaryTable({ results }: PLSummaryTableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/3">Metrics</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground">Total</TableHead>
+            {results.yearlyProjections.slice(1).map((_, index) => (
+              <TableHead key={index} className="px-4 py-3 text-center font-medium text-foreground">
+                Tahun {index + 1}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold bg-muted">Revenue</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="pl-revenue-total">{formatCurrency(results.totalRevenue)}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-revenue-year-${index + 1}`}>
+                {formatCurrency(proj.revenue)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">Direct Cost (COGS)</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="pl-cogs-total">{formatCurrency(results.totalCogs)}</TableCell>
+            {results.cogsProjections.slice(1).map((cogs, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-cogs-year-${index + 1}`}>
+                {formatCurrency(cogs.totalCogs)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">Depresiasi</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="pl-depreciation-total">{formatCurrency(results.yearlyProjections.reduce((sum, proj) => sum + proj.depreciation, 0))}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-depreciation-year-${index + 1}`}>
+                {formatCurrency(proj.depreciation)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow className="bg-muted">
+            <TableCell className="px-4 py-3 font-semibold">Gross Profit (GP)</TableCell>
+            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="pl-gross-profit-total">{formatCurrency(results.grossProfit)}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => {
+              const yearlyGrossProfit = proj.revenue - (results.cogsProjections[index + 1]?.totalCogs || 0);
+              return (
+                <TableCell key={index} className="px-4 py-3 text-center font-semibold" data-testid={`pl-gross-profit-year-${index + 1}`}>
+                  {formatCurrency(yearlyGrossProfit)}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">GP Margin</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="pl-gp-margin-total">{formatPercentage(results.grossProfitMargin)}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => {
+              const yearlyGrossProfit = proj.revenue - (results.cogsProjections[index + 1]?.totalCogs || 0);
+              const margin = proj.revenue > 0 ? (yearlyGrossProfit / proj.revenue) * 100 : 0;
+              return (
+                <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-gp-margin-year-${index + 1}`}>
+                  {formatPercentage(margin)}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+          <TableRow className="bg-muted">
+            <TableCell className="px-4 py-3 font-semibold">Net Income (NI)</TableCell>
+            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="pl-net-income-total">{formatCurrency(results.totalNetIncome)}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center font-semibold" data-testid={`pl-net-income-year-${index + 1}`}>
+                {formatCurrency(proj.netIncome)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">NI Margin</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="pl-ni-margin-total">{formatPercentage(results.netIncomeMargin)}</TableCell>
+            {results.yearlyProjections.slice(1).map((proj, index) => {
+              const margin = proj.revenue > 0 ? (proj.netIncome / proj.revenue) * 100 : 0;
+              return (
+                <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-ni-margin-year-${index + 1}`}>
+                  {formatPercentage(margin)}
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// Cash Flow Summary Table Component
+interface CashFlowSummaryTableProps {
+  results: CalculationResults;
+}
+
+export function CashFlowSummaryTable({ results }: CashFlowSummaryTableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/3">Cash Flow Metrics</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground">Total</TableHead>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableHead key={index} className="px-4 py-3 text-center font-medium text-foreground">
+                Tahun {index + 1}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">EBIT+ (after tax)</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="cf-ebit-total">
+              {formatCurrency(results.cashFlowProjections.reduce((sum, proj) => sum + proj.totalCashInflow, 0))}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((cf, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-ebit-year-${index + 1}`}>
+                {formatCurrency(cf.totalCashInflow)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">Investment (CAPEX)</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="cf-investment-total">
+              {formatCurrency(results.cashFlowProjections.reduce((sum, proj) => sum + proj.capex, 0))}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((cf, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-investment-year-${index + 1}`}>
+                {formatCurrency(cf.capex)}
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow className="bg-muted">
+            <TableCell className="px-4 py-3 font-semibold">Free Cash Flow</TableCell>
+            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="cf-free-cashflow-total">
+              {formatCurrency(results.cashFlowProjections.reduce((sum, proj) => sum + proj.netCashFlow, 0))}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((cf, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center font-semibold" data-testid={`cf-free-cashflow-year-${index + 1}`}>
+                <span className={cf.netCashFlow < 0 ? "text-red-600" : "text-green-600"}>
+                  {formatCurrency(cf.netCashFlow)}
+                </span>
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">WACC Discount Rate</TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="cf-wacc-rate">15%</TableCell>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-wacc-year-${index + 1}`}>
+                15%
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow className="border-t-2 border-primary">
+            <TableCell className="px-4 py-3 font-bold">NPV</TableCell>
+            <TableCell className={`px-4 py-3 text-center font-bold ${results.npv > 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="cf-npv-value">
+              {formatCurrency(results.npv)}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-npv-year-${index + 1}`}>
+                -
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-bold">IRR</TableCell>
+            <TableCell className={`px-4 py-3 text-center font-bold ${results.irr > 15 ? 'text-green-600' : 'text-red-600'}`} data-testid="cf-irr-value">
+              {formatPercentage(results.irr)}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-irr-year-${index + 1}`}>
+                -
+              </TableCell>
+            ))}
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-bold">Payback Period</TableCell>
+            <TableCell className="px-4 py-3 text-center font-bold" data-testid="cf-payback-value">
+              {results.paybackPeriod.years} tahun {results.paybackPeriod.months} bulan
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-payback-year-${index + 1}`}>
+                -
+              </TableCell>
+            ))}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// Feasibility Analysis Table Component
+interface FeasibilityAnalysisTableProps {
+  results: CalculationResults;
+}
+
+export function FeasibilityAnalysisTable({ results }: FeasibilityAnalysisTableProps) {
+  const npvStatus = results.npv > 0 ? 'Layak' : 'Tidak Layak';
+  const irrStatus = results.irr > 15 ? 'Layak' : 'Tidak Layak';
+  
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/4">Metrics</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-foreground w-1/2">Value</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground w-1/4">Status</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">NPV</TableCell>
+            <TableCell className="px-4 py-3 text-right font-medium" data-testid="feasibility-npv-value">
+              {formatCurrency(results.npv)}
+            </TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="feasibility-npv-status">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                results.npv > 0 
+                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  : 'bg-red-100 text-red-800 border border-red-200'
+              }`}>
+                {npvStatus}
+              </span>
+            </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-medium">IRR</TableCell>
+            <TableCell className="px-4 py-3 text-right font-medium" data-testid="feasibility-irr-value">
+              {formatPercentage(results.irr)}
+            </TableCell>
+            <TableCell className="px-4 py-3 text-center" data-testid="feasibility-irr-status">
+              <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                results.irr > 15 
+                  ? 'bg-green-100 text-green-800 border border-green-200' 
+                  : 'bg-red-100 text-red-800 border border-red-200'
+              }`}>
+                {irrStatus}
+              </span>
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

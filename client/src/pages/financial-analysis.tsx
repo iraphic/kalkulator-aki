@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProfitLossTable, CashFlowTable, CogsTable } from "@/components/financial-tables";
+import { ProfitLossTable, CashFlowTable, CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
@@ -359,6 +359,16 @@ export default function FinancialAnalysis() {
               </CardContent>
             </Card>
 
+            {/* OPEX Projection Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Tabel Proyeksi OPEX (Operating Expenses)</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <OpexTable projections={results.opexProjections} />
+              </CardContent>
+            </Card>
+
             {/* Profit & Loss Projection Table */}
             <Card>
               <CardHeader className="bg-primary text-primary-foreground">
@@ -613,6 +623,37 @@ export default function FinancialAnalysis() {
                     </div>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+
+            {/* Revenue & P&L Summary Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Revenue & P&L Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <PLSummaryTable results={results} />
+              </CardContent>
+            </Card>
+
+            {/* Cash Flow Summary Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Cash Flow Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CashFlowSummaryTable results={results} />
+              </CardContent>
+            </Card>
+
+            {/* Feasibility Analysis Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Feasibility Analysis</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <FeasibilityAnalysisTable results={results} />
               </CardContent>
             </Card>
           </div>
