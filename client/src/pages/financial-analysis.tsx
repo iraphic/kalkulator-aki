@@ -331,10 +331,11 @@ export default function FinancialAnalysis() {
             {/* Variable Inputs Section */}
             <div>
               <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  
-                  {/* Customer Name - Full width */}
-                  <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
+              
+              {/* First grid: Customer Name + OTC Cost */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
+                  {/* Customer Name - Takes more space */}
+                  <div className="sm:col-span-2 lg:col-span-3">
                     <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
                       Nama Pelanggan
                     </Label>
@@ -349,6 +350,28 @@ export default function FinancialAnalysis() {
                     />
                   </div>
 
+                  {/* OTC Cost - Takes less space */}
+                  <div className="sm:col-span-1 lg:col-span-1">
+                    <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
+                      Biaya OTC
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        id="otc-cost"
+                        placeholder="0"
+                        value={inputValues.otcCost}
+                        onChange={(e) => handleInputChange('otcCost', e.target.value)}
+                        className="currency-input pl-8"
+                        data-testid="input-otc-cost"
+                      />
+                    </div>
+                  </div>
+              </div>
+
+              {/* Second grid: Investment Cost, Monthly Revenue, Contract Period */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                   {/* Investment Cost */}
                   <div>
                     <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
@@ -401,26 +424,6 @@ export default function FinancialAnalysis() {
                       data-testid="input-period"
                     />
                   </div>
-
-                  {/* OTC Cost */}
-                  <div>
-                    <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
-                      Biaya OTC
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="otc-cost"
-                        placeholder="0"
-                        value={inputValues.otcCost}
-                        onChange={(e) => handleInputChange('otcCost', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-otc-cost"
-                      />
-                    </div>
-                  </div>
-
               </div>
             </div>
 
