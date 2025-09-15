@@ -80,7 +80,6 @@ const TAX_RATE = 0.22; // 22%
 const BAD_DEBT_RATE = 0.05; // 5%
 const MARKETING_RATE = 0.30; // 30%
 const OPERATIONAL_RATE = 0.20; // 20%
-const DEPRECIATION_YEARS = 6;
 const CAPEX_ADDITIONAL = 0.007; // 0.70% for unexpected costs
 
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
@@ -103,8 +102,11 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   // OPEX calculations will be computed per year, totals will be calculated later
 
   // Depreciation - based on actual CAPEX including additional costs
+  // Calculate depreciation period based on contract period (in years, rounded up)
+  // Guard against division by zero when contractPeriod is 0
+  const depreciationPeriod = contractPeriod > 0 ? Math.ceil(contractPeriod / 12) : 1;
   const actualCapex = investmentCost * (1 + CAPEX_ADDITIONAL);
-  const annualDepreciation = actualCapex / DEPRECIATION_YEARS;
+  const annualDepreciation = actualCapex / depreciationPeriod;
 
   // Yearly projections
   const yearlyProjections: YearlyProjection[] = [];
@@ -122,7 +124,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     // OPEX will be calculated separately and stored in opexProjections
     let yearlyOpex = 0;
     const ebitda = yearlyRevenue - badDebt - yearlyOpex;
-    const depreciation = year === 0 ? 0 : annualDepreciation;
+    const depreciation = year === 0 || year > depreciationPeriod ? 0 : annualDepreciation;
     const ebit = ebitda - depreciation;
     const tax = ebit * TAX_RATE;
     const netIncome = ebit - tax;
