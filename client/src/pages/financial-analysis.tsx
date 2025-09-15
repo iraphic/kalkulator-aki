@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
@@ -26,6 +27,8 @@ export default function FinancialAnalysis() {
     contractPeriod: "",
     otcCost: "",
   });
+
+  const [showFixedParams, setShowFixedParams] = useState(true);
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
     if (field === 'customerName') {
@@ -260,8 +263,27 @@ export default function FinancialAnalysis() {
             <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
               {/* Fixed Parameters Section */}
               <div className="lg:col-span-2">
-                <h3 className="font-medium text-foreground mb-4">Parameter Tetap</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 h-full">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-foreground">Parameter Tetap</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowFixedParams(!showFixedParams)}
+                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-colors"
+                    data-testid="button-toggle-fixed-params"
+                  >
+                    {showFixedParams ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                <div 
+                  className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 transition-all duration-300 ease-in-out overflow-hidden ${
+                    showFixedParams ? 'opacity-100 max-h-96' : 'opacity-0 max-h-0'
+                  }`}
+                >
                   <div>
                     <Label className="block text-sm text-muted-foreground mb-2">WACC (Discount Rate)</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="wacc-value">
