@@ -29,3 +29,10 @@ export function formatInputCurrency(value: string): string {
   const number = parseInt(cleaned);
   return new Intl.NumberFormat('id-ID').format(number);
 }
+
+export function stripCurrencyPrefix(formattedCurrency: string): string {
+  // Handle negative values by preserving the minus sign
+  const isNeg = formattedCurrency.trim().startsWith('-');
+  const cleaned = formattedCurrency.replace(/^\s*-?\s*Rp[\s\u00A0]*/i, '');
+  return (isNeg ? '-' : '') + cleaned.trim();
+}
