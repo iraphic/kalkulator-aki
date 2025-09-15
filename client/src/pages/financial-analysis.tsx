@@ -62,8 +62,8 @@ export default function FinancialAnalysis() {
       ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
       ['Periode (Bulan)', inputs.contractPeriod],
       ['Biaya OTC', formatCurrency(inputs.otcCost)],
-      ['WACC', '17.8%'],
-      ['Tax', '26%'],
+      ['WACC', '15%'],
+      ['Tax', '22%'],
       ['', ''],
       ['Hasil Perhitungan', ''],
       ['Total Revenue', formatCurrency(results.totalRevenue)],
@@ -149,13 +149,13 @@ export default function FinancialAnalysis() {
                   <div>
                     <Label className="block text-sm text-muted-foreground">WACC</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="wacc-value">
-                      17.8%
+                      15%
                     </div>
                   </div>
                   <div>
                     <Label className="block text-sm text-muted-foreground">Tax</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
-                      26%
+                      22%
                     </div>
                   </div>
                 </div>
@@ -417,9 +417,9 @@ export default function FinancialAnalysis() {
                             {formatPercentage(results.irr)}
                           </div>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                            results.irr > 17.8 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                            results.irr > 15 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                           }`} data-testid="irr-status">
-                            {results.irr > 17.8 ? 'Layak' : 'Tidak Layak'}
+                            {results.irr > 15 ? 'Layak' : 'Tidak Layak'}
                           </span>
                         </div>
                       </div>
