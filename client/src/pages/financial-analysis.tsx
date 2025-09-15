@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ProfitLossTable, CashFlowTable, CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
+import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
@@ -369,25 +369,6 @@ export default function FinancialAnalysis() {
               </CardContent>
             </Card>
 
-            {/* Profit & Loss Projection Table */}
-            <Card>
-              <CardHeader className="bg-primary text-primary-foreground">
-                <CardTitle className="text-lg font-semibold">Tabel Proyeksi Profit & Loss (Terformat)</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <ProfitLossTable projections={results.yearlyProjections} />
-              </CardContent>
-            </Card>
-
-            {/* Cash Flow Projection */}
-            <Card>
-              <CardHeader className="bg-primary text-primary-foreground">
-                <CardTitle className="text-lg font-semibold">Cash Flow Projection</CardTitle>
-              </CardHeader>
-              <CardContent className="p-0">
-                <CashFlowTable projections={results.cashFlowProjections} />
-              </CardContent>
-            </Card>
 
             {/* Financial Summary Form */}
             <Card>
