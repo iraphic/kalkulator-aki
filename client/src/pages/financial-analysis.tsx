@@ -405,7 +405,7 @@ export default function FinancialAnalysis() {
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                       <Input
                         type="text"
-                        value={formatCurrency(inputs.investmentCost).replace('Rp ', '')}
+                        value={formatCurrency(inputs.investmentCost).replace(/^Rp\s*/, '')}
                         readOnly
                         className="currency-input pl-8 bg-muted"
                         data-testid="output-capex"
@@ -423,7 +423,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.totalCogs).replace('Rp ', '')}
+                          value={formatCurrency(results.totalCogs).replace(/^Rp\s*/, '')}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-cogs"
@@ -438,7 +438,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.totalOpex).replace('Rp ', '')}
+                          value={formatCurrency(results.totalOpex).replace(/^Rp\s*/, '')}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-opex"
@@ -456,7 +456,7 @@ export default function FinancialAnalysis() {
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                       <Input
                         type="text"
-                        value={formatCurrency(results.totalRevenue).replace('Rp ', '')}
+                        value={formatCurrency(results.totalRevenue).replace(/^Rp\s*/, '')}
                         readOnly
                         className="currency-input pl-8 bg-muted"
                         data-testid="output-revenue"
@@ -474,7 +474,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.grossProfit).replace('Rp ', '')}
+                          value={formatCurrency(results.grossProfit).replace(/^Rp\s*/, '')}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-gross-profit"
@@ -508,7 +508,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.totalNetIncome).replace('Rp ', '')}
+                          value={formatCurrency(results.totalNetIncome).replace(/^Rp\s*/, '')}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-net-income"
@@ -541,7 +541,7 @@ export default function FinancialAnalysis() {
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                       <Input
                         type="text"
-                        value={formatCurrency(results.npv).replace('Rp ', '')}
+                        value={formatCurrency(results.npv).replace(/^Rp\s*/, '')}
                         readOnly
                         className={`currency-input pl-8 ${results.npv > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
                         data-testid="output-npv"
