@@ -80,7 +80,95 @@ export default function FinancialAnalysis() {
     const wsInput = XLSX.utils.aoa_to_sheet(inputData);
     XLSX.utils.book_append_sheet(wb, wsInput, 'Input & Summary');
     
-    // Profit & Loss Sheet
+    // COGS Sheet (matching CogsTable)
+    const cogsHeaders = ['Label', 'Jumlah', ...results.cogsProjections.map((_, i) => `Tahun ke-${i}`)];
+    const cogsData = [
+      cogsHeaders,
+      ['COGS OTC', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.otcCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.otcCogs))],
+      ['COGS Bulanan', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.monthlyCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.monthlyCogs))],
+      ['Total COGS', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.totalCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.totalCogs))]
+    ];
+    
+    const wsCogs = XLSX.utils.aoa_to_sheet(cogsData);
+    XLSX.utils.book_append_sheet(wb, wsCogs, 'COGS');
+    
+    // OPEX Breakdown Sheet (matching OpexTable)
+    const opexHeaders = ['Label', 'Jumlah', ...results.opexProjections.map((_, i) => `Tahun ke-${i}`)];
+    const opexData = [
+      opexHeaders,
+      ['Marketing Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.marketingCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.marketingCost))],
+      ['Operational Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.operationalCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.operationalCost))],
+      ['Total OPEX', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.totalOpex, 0)), ...results.opexProjections.map(p => formatCurrency(p.totalOpex))]
+    ];
+    
+    const wsOpex = XLSX.utils.aoa_to_sheet(opexData);
+    XLSX.utils.book_append_sheet(wb, wsOpex, 'OPEX Breakdown');
+    
+    // Revenue & P&L Summary Sheet (matching PLSummaryTable)
+    const plSummaryHeaders = ['Metrics', 'Total', ...results.yearlyProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
+    
+    // Calculate totals excluding year 0 to match web interface columns
+    const revenueTotal = results.yearlyProjections.slice(1).reduce((sum, p) => sum + p.revenue, 0);
+    const cogsTotal = results.cogsProjections.slice(1).reduce((sum, p) => sum + p.totalCogs, 0);
+    const depreciationTotal = results.yearlyProjections.slice(1).reduce((sum, p) => sum + p.depreciation, 0);
+    const grossProfitTotal = revenueTotal - cogsTotal;
+    const netIncomeTotal = results.yearlyProjections.slice(1).reduce((sum, p) => sum + p.netIncome, 0);
+    const grossMarginTotal = revenueTotal > 0 ? (grossProfitTotal / revenueTotal) : 0;
+    const niMarginTotal = revenueTotal > 0 ? (netIncomeTotal / revenueTotal) : 0;
+    
+    const plSummaryData = [
+      plSummaryHeaders,
+      ['Revenue', formatCurrency(revenueTotal), ...results.yearlyProjections.slice(1).map(p => formatCurrency(p.revenue))],
+      ['Direct Cost (COGS)', formatCurrency(cogsTotal), ...results.cogsProjections.slice(1).map(p => formatCurrency(p.totalCogs))],
+      ['Depresiasi', formatCurrency(depreciationTotal), ...results.yearlyProjections.slice(1).map(p => formatCurrency(p.depreciation))],
+      ['Gross Profit (GP)', formatCurrency(grossProfitTotal), ...results.yearlyProjections.slice(1).map((proj, index) => {
+        const yearlyGrossProfit = proj.revenue - (results.cogsProjections[index + 1]?.totalCogs || 0);
+        return formatCurrency(yearlyGrossProfit);
+      })],
+      ['GP Margin', formatPercentage(grossMarginTotal), ...results.yearlyProjections.slice(1).map((proj, index) => {
+        const yearlyRevenue = proj.revenue;
+        const yearlyCogs = results.cogsProjections[index + 1]?.totalCogs || 0;
+        const yearlyGrossProfit = yearlyRevenue - yearlyCogs;
+        const yearlyMargin = yearlyRevenue > 0 ? (yearlyGrossProfit / yearlyRevenue) : 0;
+        return formatPercentage(yearlyMargin);
+      })],
+      ['Net Income (NI)', formatCurrency(netIncomeTotal), ...results.yearlyProjections.slice(1).map(p => formatCurrency(p.netIncome))],
+      ['NI Margin', formatPercentage(niMarginTotal), ...results.yearlyProjections.slice(1).map((proj) => {
+        const margin = proj.revenue > 0 ? (proj.netIncome / proj.revenue) : 0;
+        return formatPercentage(margin);
+      })]
+    ];
+    
+    const wsPLSummary = XLSX.utils.aoa_to_sheet(plSummaryData);
+    XLSX.utils.book_append_sheet(wb, wsPLSummary, 'Revenue & PL Summary');
+    
+    // Cash Flow Summary Sheet (matching CashFlowSummaryTable)
+    const calculatePVOfFCF = (fcf: number, year: number, discountRate: number = 0.15) => {
+      if (year === 0) return fcf;
+      return fcf / Math.pow(1 + discountRate, year);
+    };
+    
+    const cfSummaryHeaders = ['Cash Flow Metrics', 'Total', ...results.cashFlowProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
+    
+    // Calculate totals excluding year 0 to match web interface columns
+    const cashInflowTotal = results.cashFlowProjections.slice(1).reduce((sum, proj) => sum + proj.totalCashInflow, 0);
+    const capexTotal = results.cashFlowProjections.slice(1).reduce((sum, proj) => sum + proj.capex, 0);
+    const fcfTotal = results.cashFlowProjections.slice(1).reduce((sum, proj) => sum + proj.netCashFlow, 0);
+    const pvFCFTotal = results.cashFlowProjections.slice(1).reduce((sum, proj) => sum + calculatePVOfFCF(proj.netCashFlow, proj.year), 0);
+    
+    const cfSummaryData = [
+      cfSummaryHeaders,
+      ['EBIT+ (after tax)', formatCurrency(cashInflowTotal), ...results.cashFlowProjections.slice(1).map(cf => formatCurrency(cf.totalCashInflow))],
+      ['Investment (CAPEX)', formatCurrency(capexTotal), ...results.cashFlowProjections.slice(1).map(cf => formatCurrency(cf.capex))],
+      ['Free Cash Flow', formatCurrency(fcfTotal), ...results.cashFlowProjections.slice(1).map(cf => formatCurrency(cf.netCashFlow))],
+      ['WACC Discount Rate', '15%', ...results.cashFlowProjections.slice(1).map(() => '15%')],
+      ['PV (Present Value) of FCF', formatCurrency(pvFCFTotal), ...results.cashFlowProjections.slice(1).map(cf => formatCurrency(calculatePVOfFCF(cf.netCashFlow, cf.year)))]
+    ];
+    
+    const wsCFSummary = XLSX.utils.aoa_to_sheet(cfSummaryData);
+    XLSX.utils.book_append_sheet(wb, wsCFSummary, 'Cash Flow Summary');
+    
+    // Detailed Profit & Loss Sheet (matching ProfitLossTable)
     const plHeaders = ['Label', 'Jumlah', ...results.yearlyProjections.map((_, i) => `Tahun ke-${i}`)];
     const plData = [
       plHeaders,
@@ -95,9 +183,9 @@ export default function FinancialAnalysis() {
     ];
     
     const wsPL = XLSX.utils.aoa_to_sheet(plData);
-    XLSX.utils.book_append_sheet(wb, wsPL, 'Profit & Loss');
+    XLSX.utils.book_append_sheet(wb, wsPL, 'Detailed PL');
     
-    // Cash Flow Sheet
+    // Detailed Cash Flow Sheet (matching CashFlowTable)
     const cfHeaders = ['Label', 'Jumlah', ...results.cashFlowProjections.map((_, i) => `Tahun ke-${i}`)];
     const cfData = [
       cfHeaders,
@@ -106,11 +194,39 @@ export default function FinancialAnalysis() {
       ['TOTAL CASH INFLOW', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.totalCashInflow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.totalCashInflow))],
       ['CAPEX', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.capex, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.capex))],
       ['Net Cash Flow', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netCashFlow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netCashFlow))],
-      ['Cum Cash Flow', '', ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
+      ['Cum Cash Flow', formatCurrency(results.cashFlowProjections.length > 0 ? results.cashFlowProjections[results.cashFlowProjections.length - 1].cumulativeCashFlow : 0), ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
     ];
     
     const wsCF = XLSX.utils.aoa_to_sheet(cfData);
-    XLSX.utils.book_append_sheet(wb, wsCF, 'Cash Flow');
+    XLSX.utils.book_append_sheet(wb, wsCF, 'Detailed Cash Flow');
+    
+    // NPV Analysis Sheet (matching NPVAnalysisTable)
+    const npvAnalysisHeaders = ['Analisis Kelayakan', 'Nilai', ...results.cashFlowProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
+    const npvAnalysisData = [
+      npvAnalysisHeaders,
+      ['NPV', formatCurrency(results.npv), ...results.cashFlowProjections.slice(1).map(() => '-')],
+      ['IRR', formatPercentage(results.irr), ...results.cashFlowProjections.slice(1).map(() => '-')],
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, ...results.cashFlowProjections.slice(1).map(() => '-')]
+    ];
+    
+    const wsNPVAnalysis = XLSX.utils.aoa_to_sheet(npvAnalysisData);
+    XLSX.utils.book_append_sheet(wb, wsNPVAnalysis, 'NPV Analysis');
+    
+    // Feasibility Analysis Sheet (matching FeasibilityAnalysisTable)
+    const npvStatus = results.npv > 0 ? 'Layak' : 'Tidak Layak';
+    const irrStatus = results.irr >= 0.15 ? 'Layak' : 'Tidak Layak';
+    
+    const feasibilityData = [
+      ['Metrics', 'Value', 'Status'],
+      ['NPV', formatCurrency(results.npv), npvStatus],
+      ['IRR', formatPercentage(results.irr), irrStatus],
+      ['', '', ''],
+      ['Kesimpulan', '', ''],
+      ['Kelayakan Investasi', results.isViable ? 'LAYAK' : 'TIDAK LAYAK', results.isViable ? 'Investasi direkomendasikan' : 'Investasi tidak direkomendasikan']
+    ];
+    
+    const wsFeasibility = XLSX.utils.aoa_to_sheet(feasibilityData);
+    XLSX.utils.book_append_sheet(wb, wsFeasibility, 'Feasibility Analysis');
     
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
@@ -556,7 +672,7 @@ export default function FinancialAnalysis() {
                           type="text"
                           value={formatPercentage(results.irr).replace('%', '')}
                           readOnly
-                          className={`pr-8 ${results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+                          className={`pr-8 ${results.irr >= 0.15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
                           data-testid="output-irr"
                         />
                         <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">%</span>
@@ -593,12 +709,12 @@ export default function FinancialAnalysis() {
                         </div>
                       </div>
                       <div className={`p-3 rounded-md border ${
-                        results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        results.irr >= 0.15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                       }`}>
                         <div className={`font-medium text-sm ${
-                          results.irr > 15 ? 'text-green-800' : 'text-red-800'
+                          results.irr >= 0.15 ? 'text-green-800' : 'text-red-800'
                         }`}>
-                          IRR: {results.irr > 15 ? 'Layak' : 'Tidak Layak'}
+                          IRR: {results.irr >= 0.15 ? 'Layak' : 'Tidak Layak'}
                         </div>
                       </div>
                     </div>

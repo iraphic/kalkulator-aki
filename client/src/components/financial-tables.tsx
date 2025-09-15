@@ -559,7 +559,7 @@ export function NPVAnalysisTable({ results }: NPVAnalysisTableProps) {
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-bold">IRR</TableCell>
-            <TableCell className={`px-4 py-3 text-center font-bold ${results.irr > 0.15 ? 'text-green-600' : 'text-red-600'}`} data-testid="irr-analysis-value">
+            <TableCell className={`px-4 py-3 text-center font-bold ${results.irr >= 15 ? 'text-green-600' : 'text-red-600'}`} data-testid="irr-analysis-value">
               {formatPercentage(results.irr)}
             </TableCell>
             {results.cashFlowProjections.slice(1).map((_, index) => (
@@ -592,7 +592,7 @@ interface FeasibilityAnalysisTableProps {
 
 export function FeasibilityAnalysisTable({ results }: FeasibilityAnalysisTableProps) {
   const npvStatus = results.npv > 0 ? 'Layak' : 'Tidak Layak';
-  const irrStatus = results.irr > 0.15 ? 'Layak' : 'Tidak Layak';
+  const irrStatus = results.irr >= 15 ? 'Layak' : 'Tidak Layak';
   
   return (
     <div className="overflow-x-auto">
@@ -627,7 +627,7 @@ export function FeasibilityAnalysisTable({ results }: FeasibilityAnalysisTablePr
             </TableCell>
             <TableCell className="px-4 py-3 text-center" data-testid="feasibility-irr-status">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                results.irr > 0.15 
+                results.irr >= 15 
                   ? 'bg-green-100 text-green-800 border border-green-200' 
                   : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
