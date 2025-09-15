@@ -3,7 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Settings } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
@@ -28,7 +30,6 @@ export default function FinancialAnalysis() {
     otcCost: "",
   });
 
-  const [showFixedParams, setShowFixedParams] = useState(true);
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
     if (field === 'customerName') {
@@ -257,85 +258,83 @@ export default function FinancialAnalysis() {
         {/* Input Section */}
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle className="text-xl font-semibold">Parameter Input</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-              {/* Fixed Parameters Section */}
-              <div className="lg:col-span-2">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-medium text-foreground">Parameter Tetap</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowFixedParams(!showFixedParams)}
-                    className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground transition-colors"
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl font-semibold">Parameter Input</CardTitle>
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
                     data-testid="button-toggle-fixed-params"
                   >
-                    {showFixedParams ? (
-                      <ChevronUp className="h-4 w-4" />
-                    ) : (
-                      <ChevronDown className="h-4 w-4" />
-                    )}
+                    <Settings className="h-4 w-4 mr-2" />
+                    Parameter Tetap
                   </Button>
-                </div>
-                <div 
-                  className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 transition-all duration-300 ease-in-out overflow-hidden ${
-                    showFixedParams ? 'opacity-100 max-h-96' : 'opacity-0 max-h-0'
-                  }`}
-                >
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">WACC (Discount Rate)</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="wacc-value">
-                      15%
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80 sm:w-96">
+                  <SheetHeader className="mb-6">
+                    <SheetTitle>Parameter Tetap</SheetTitle>
+                    <SheetDescription>Parameter perhitungan yang digunakan dalam analisis</SheetDescription>
+                  </SheetHeader>
+                  <ScrollArea className="h-[calc(100vh-120px)]">
+                    <div className="space-y-4 pr-4">
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">WACC (Discount Rate)</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="wacc-value">
+                          15%
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">Tax Rate</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
+                          22%
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">COGS Margin</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="cogs-margin-value">
+                          70%
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">Bad Debt Rate</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="bad-debt-value">
+                          5%
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">Depreciation Period</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="depreciation-value">
+                          5 Tahun
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">Marketing Cost Rate</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="marketing-cost-value">
+                          30%
+                        </div>
+                      </div>
+                      <div>
+                        <Label className="block text-sm text-muted-foreground mb-2">Operational Cost Rate</Label>
+                        <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="operational-cost-value">
+                          20%
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">Tax Rate</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
-                      22%
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">COGS Margin</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="cogs-margin-value">
-                      70%
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">Bad Debt Rate</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="bad-debt-value">
-                      5%
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">Depreciation Period</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="depreciation-value">
-                      5 Tahun
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">Marketing Cost Rate</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="marketing-cost-value">
-                      30%
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="block text-sm text-muted-foreground mb-2">Operational Cost Rate</Label>
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="operational-cost-value">
-                      20%
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Variable Inputs Section */}
-              <div className="lg:col-span-3">
-                <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  </ScrollArea>
+                </SheetContent>
+              </Sheet>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {/* Variable Inputs Section */}
+            <div>
+              <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   
-                  {/* Customer Name - Full width on mobile, half width on desktop */}
-                  <div className="sm:col-span-2 xl:col-span-3">
+                  {/* Customer Name - Full width */}
+                  <div className="sm:col-span-2 lg:col-span-3 xl:col-span-4">
                     <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
                       Nama Pelanggan
                     </Label>
@@ -422,7 +421,6 @@ export default function FinancialAnalysis() {
                     </div>
                   </div>
 
-                </div>
               </div>
             </div>
 
