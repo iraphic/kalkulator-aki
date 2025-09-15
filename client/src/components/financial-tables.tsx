@@ -488,12 +488,13 @@ export function CashFlowSummaryTable({ results }: CashFlowSummaryTableProps) {
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-semibold">WACC Discount Rate</TableCell>
-            <TableCell className="px-4 py-3 text-center" data-testid="cf-wacc-rate">15%</TableCell>
-            {results.cashFlowProjections.slice(1).map((_, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-wacc-year-${index + 1}`}>
-                15%
-              </TableCell>
-            ))}
+            <TableCell 
+              className="px-4 py-3 text-center" 
+              colSpan={1 + results.cashFlowProjections.slice(1).length}
+              data-testid="cf-wacc-rate"
+            >
+              15%
+            </TableCell>
           </TableRow>
           <TableRow className="border-t-2 border-primary">
             <TableCell className="px-4 py-3 font-bold">NPV</TableCell>
