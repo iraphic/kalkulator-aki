@@ -257,47 +257,78 @@ export default function FinancialAnalysis() {
             <CardTitle className="text-xl font-semibold">Parameter Input</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {/* Fixed Parameters */}
-              <div className="space-y-4">
-                <h3 className="font-medium text-foreground">Parameter Tetap</h3>
-                <div className="space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+              {/* Fixed Parameters Section */}
+              <div className="lg:col-span-2">
+                <h3 className="font-medium text-foreground mb-4">Parameter Tetap</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4 h-full">
                   <div>
-                    <Label className="block text-sm text-muted-foreground">WACC</Label>
+                    <Label className="block text-sm text-muted-foreground mb-2">WACC (Discount Rate)</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="wacc-value">
                       15%
                     </div>
                   </div>
                   <div>
-                    <Label className="block text-sm text-muted-foreground">Tax</Label>
+                    <Label className="block text-sm text-muted-foreground mb-2">Tax Rate</Label>
                     <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="tax-value">
                       22%
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="block text-sm text-muted-foreground mb-2">COGS Margin</Label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="cogs-margin-value">
+                      70%
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="block text-sm text-muted-foreground mb-2">Bad Debt Rate</Label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="bad-debt-value">
+                      5%
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="block text-sm text-muted-foreground mb-2">Depreciation Period</Label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="depreciation-value">
+                      5 Tahun
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="block text-sm text-muted-foreground mb-2">Marketing Cost Rate</Label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="marketing-cost-value">
+                      30%
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="block text-sm text-muted-foreground mb-2">Operational Cost Rate</Label>
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm font-medium" data-testid="operational-cost-value">
+                      20%
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* User Inputs */}
+              {/* Variable Inputs Section */}
               <div className="lg:col-span-3">
                 <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
-                
-                {/* Customer Name Input */}
-                <div className="mb-6">
-                  <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
-                    Nama Pelanggan
-                  </Label>
-                  <Input
-                    type="text"
-                    id="customer-name"
-                    placeholder="Masukkan nama pelanggan"
-                    value={inputValues.customerName}
-                    onChange={(e) => handleInputChange('customerName', e.target.value)}
-                    className="w-full"
-                    data-testid="input-customer-name"
-                  />
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  
+                  {/* Customer Name - Full width on mobile, half width on desktop */}
+                  <div className="sm:col-span-2 xl:col-span-3">
+                    <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
+                      Nama Pelanggan
+                    </Label>
+                    <Input
+                      type="text"
+                      id="customer-name"
+                      placeholder="Masukkan nama pelanggan"
+                      value={inputValues.customerName}
+                      onChange={(e) => handleInputChange('customerName', e.target.value)}
+                      className="w-full"
+                      data-testid="input-customer-name"
+                    />
+                  </div>
+
+                  {/* Investment Cost */}
                   <div>
                     <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
                       Biaya Investasi (BOQ)
@@ -315,6 +346,8 @@ export default function FinancialAnalysis() {
                       />
                     </div>
                   </div>
+
+                  {/* Monthly Revenue */}
                   <div>
                     <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
                       Pendapatan per Bulan
@@ -332,9 +365,11 @@ export default function FinancialAnalysis() {
                       />
                     </div>
                   </div>
+
+                  {/* Contract Period */}
                   <div>
                     <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
-                      Periode (Bulan)
+                      Periode Kontrak (Bulan)
                     </Label>
                     <Input
                       type="number"
@@ -345,6 +380,8 @@ export default function FinancialAnalysis() {
                       data-testid="input-period"
                     />
                   </div>
+
+                  {/* OTC Cost */}
                   <div>
                     <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
                       Biaya OTC
@@ -362,6 +399,7 @@ export default function FinancialAnalysis() {
                       />
                     </div>
                   </div>
+
                 </div>
               </div>
             </div>
