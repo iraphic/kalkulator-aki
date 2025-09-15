@@ -433,6 +433,16 @@ interface CashFlowSummaryTableProps {
 }
 
 export function CashFlowSummaryTable({ results }: CashFlowSummaryTableProps) {
+  // Calculate Present Value of Free Cash Flow
+  const calculatePVOfFCF = (fcf: number, year: number, discountRate: number = 0.15) => {
+    if (year === 0) return fcf; // Year 0 is already present value
+    return fcf / Math.pow(1 + discountRate, year);
+  };
+
+  const pvOfFCFTotal = results.cashFlowProjections.slice(1).reduce((sum, proj) => {
+    return sum + calculatePVOfFCF(proj.netCashFlow, proj.year);
+  }, 0);
+
   return (
     <div className="overflow-x-auto">
       <Table className="w-full table-striped">
@@ -493,35 +503,78 @@ export function CashFlowSummaryTable({ results }: CashFlowSummaryTableProps) {
               15%
             </TableCell>
           </TableRow>
+          <TableRow>
+            <TableCell className="px-4 py-3 font-semibold">PV (Present Value) of FCF</TableCell>
+            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="cf-pv-fcf-total">
+              {formatCurrency(pvOfFCFTotal)}
+            </TableCell>
+            {results.cashFlowProjections.slice(1).map((cf, index) => {
+              const pvValue = calculatePVOfFCF(cf.netCashFlow, cf.year);
+              return (
+                <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-pv-fcf-year-${index + 1}`}>
+                  <span className={pvValue < 0 ? "text-red-600" : "text-green-600"}>
+                    {formatCurrency(pvValue)}
+                  </span>
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+// NPV Analysis Table Component
+interface NPVAnalysisTableProps {
+  results: CalculationResults;
+}
+
+export function NPVAnalysisTable({ results }: NPVAnalysisTableProps) {
+  return (
+    <div className="overflow-x-auto">
+      <Table className="w-full table-striped">
+        <TableHeader className="bg-muted">
+          <TableRow>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/3">Analisis Kelayakan</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground">Nilai</TableHead>
+            {results.cashFlowProjections.slice(1).map((_, index) => (
+              <TableHead key={index} className="px-4 py-3 text-center font-medium text-foreground">
+                Tahun {index + 1}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           <TableRow className="border-t-2 border-primary">
             <TableCell className="px-4 py-3 font-bold">NPV</TableCell>
-            <TableCell className={`px-4 py-3 text-center font-bold ${results.npv > 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="cf-npv-value">
+            <TableCell className={`px-4 py-3 text-center font-bold ${results.npv > 0 ? 'text-green-600' : 'text-red-600'}`} data-testid="npv-analysis-value">
               {formatCurrency(results.npv)}
             </TableCell>
             {results.cashFlowProjections.slice(1).map((_, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-npv-year-${index + 1}`}>
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`npv-analysis-year-${index + 1}`}>
                 -
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-bold">IRR</TableCell>
-            <TableCell className={`px-4 py-3 text-center font-bold ${results.irr > 15 ? 'text-green-600' : 'text-red-600'}`} data-testid="cf-irr-value">
+            <TableCell className={`px-4 py-3 text-center font-bold ${results.irr > 0.15 ? 'text-green-600' : 'text-red-600'}`} data-testid="irr-analysis-value">
               {formatPercentage(results.irr)}
             </TableCell>
             {results.cashFlowProjections.slice(1).map((_, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-irr-year-${index + 1}`}>
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`irr-analysis-year-${index + 1}`}>
                 -
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-bold">Payback Period</TableCell>
-            <TableCell className="px-4 py-3 text-center font-bold" data-testid="cf-payback-value">
+            <TableCell className="px-4 py-3 text-center font-bold" data-testid="payback-analysis-value">
               {results.paybackPeriod.years} tahun {results.paybackPeriod.months} bulan
             </TableCell>
             {results.cashFlowProjections.slice(1).map((_, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`cf-payback-year-${index + 1}`}>
+              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`payback-analysis-year-${index + 1}`}>
                 -
               </TableCell>
             ))}
@@ -539,7 +592,7 @@ interface FeasibilityAnalysisTableProps {
 
 export function FeasibilityAnalysisTable({ results }: FeasibilityAnalysisTableProps) {
   const npvStatus = results.npv > 0 ? 'Layak' : 'Tidak Layak';
-  const irrStatus = results.irr > 15 ? 'Layak' : 'Tidak Layak';
+  const irrStatus = results.irr > 0.15 ? 'Layak' : 'Tidak Layak';
   
   return (
     <div className="overflow-x-auto">
@@ -574,7 +627,7 @@ export function FeasibilityAnalysisTable({ results }: FeasibilityAnalysisTablePr
             </TableCell>
             <TableCell className="px-4 py-3 text-center" data-testid="feasibility-irr-status">
               <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                results.irr > 15 
+                results.irr > 0.15 
                   ? 'bg-green-100 text-green-800 border border-green-200' 
                   : 'bg-red-100 text-red-800 border border-red-200'
               }`}>
