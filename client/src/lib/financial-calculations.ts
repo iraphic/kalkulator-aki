@@ -35,6 +35,13 @@ export interface CogsProjection {
   totalCogs: number;
 }
 
+export interface OpexProjection {
+  year: number;
+  marketingCost: number;
+  operationalCost: number;
+  totalOpex: number;
+}
+
 export interface PaybackPeriod {
   years: number;
   months: number;
@@ -60,6 +67,7 @@ export interface CalculationResults {
   yearlyProjections: YearlyProjection[];
   cashFlowProjections: CashFlowProjection[];
   cogsProjections: CogsProjection[];
+  opexProjections: OpexProjection[];
   npv: number;
   irr: number;
   paybackPeriod: PaybackPeriod;
@@ -92,15 +100,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   const costIBL = totalRevenue; // Same as revenue for IBL
   const costOBL = 0; // No OBL costs
   
-  // OPEX calculations - updated per user requirements
-  // Marketing cost: 30% of monthly revenue only (without OTC)
-  const marketingCost = monthlyTotal * MARKETING_RATE;
-  
-  // Operational cost: 20% of total revenue
-  const operationalCost = totalRevenue * OPERATIONAL_RATE;
-  
-  // Total OPEX: marketing + operational costs
-  const totalOpex = marketingCost + operationalCost;
+  // OPEX calculations will be computed per year, totals will be calculated later
 
   // Depreciation - based on actual CAPEX including additional costs
   const actualCapex = investmentCost * (1 + CAPEX_ADDITIONAL);
@@ -119,7 +119,8 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     }
 
     const badDebt = yearlyRevenue * BAD_DEBT_RATE;
-    const yearlyOpex = year === 0 ? 0 : (marketingCost + operationalCost) / 6;
+    // OPEX will be calculated separately and stored in opexProjections
+    let yearlyOpex = 0;
     const ebitda = yearlyRevenue - badDebt - yearlyOpex;
     const depreciation = year === 0 ? 0 : annualDepreciation;
     const ebit = ebitda - depreciation;
@@ -162,6 +163,57 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
       totalCogs: yearlyTotalCogs,
     });
   }
+
+  // OPEX projections - calculate per year based on actual revenue
+  const opexProjections: OpexProjection[] = [];
+  
+  for (let year = 0; year <= 6; year++) {
+    let yearlyMarketingCost = 0;
+    let yearlyOperationalCost = 0;
+    
+    if (year === 0) {
+      // Year 0: No marketing cost, operational cost on OTC revenue only
+      yearlyOperationalCost = otcRevenue * OPERATIONAL_RATE;
+    } else if (year <= Math.ceil(contractPeriod / 12)) {
+      // Calculate this year's monthly revenue portion
+      const yearlyMonthlyRevenue = Math.min(monthlyRevenue * 12, monthlyTotal - (monthlyRevenue * 12 * (year - 1)));
+      // Get total yearly revenue (which could include both monthly and remaining revenue)
+      const yearlyTotalRevenue = yearlyProjections[year].revenue;
+      
+      // Marketing cost: 30% of monthly revenue portion only
+      yearlyMarketingCost = yearlyMonthlyRevenue * MARKETING_RATE;
+      // Operational cost: 20% of total yearly revenue
+      yearlyOperationalCost = yearlyTotalRevenue * OPERATIONAL_RATE;
+    }
+    
+    const yearlyTotalOpex = yearlyMarketingCost + yearlyOperationalCost;
+    
+    opexProjections.push({
+      year,
+      marketingCost: yearlyMarketingCost,
+      operationalCost: yearlyOperationalCost,
+      totalOpex: yearlyTotalOpex,
+    });
+  }
+
+  // Update yearly projections with calculated OPEX values
+  for (let i = 0; i < yearlyProjections.length; i++) {
+    const opexValue = opexProjections[i].totalOpex;
+    yearlyProjections[i].opex = opexValue;
+    // Recalculate EBITDA with the correct OPEX
+    yearlyProjections[i].ebitda = yearlyProjections[i].revenue - yearlyProjections[i].badDebt - opexValue;
+    // Recalculate EBIT
+    yearlyProjections[i].ebit = yearlyProjections[i].ebitda - yearlyProjections[i].depreciation;
+    // Recalculate tax - only apply tax if EBIT is positive
+    yearlyProjections[i].tax = yearlyProjections[i].ebit > 0 ? yearlyProjections[i].ebit * TAX_RATE : 0;
+    // Recalculate net income
+    yearlyProjections[i].netIncome = yearlyProjections[i].ebit - yearlyProjections[i].tax;
+  }
+
+  // Calculate totals from projections
+  const totalOpex = opexProjections.reduce((sum, p) => sum + p.totalOpex, 0);
+  const marketingCost = opexProjections.reduce((sum, p) => sum + p.marketingCost, 0);
+  const operationalCost = opexProjections.reduce((sum, p) => sum + p.operationalCost, 0);
 
   // Cash flow projections
   const cashFlowProjections: CashFlowProjection[] = [];
@@ -221,6 +273,7 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     yearlyProjections,
     cashFlowProjections,
     cogsProjections,
+    opexProjections,
     npv,
     irr: irr * 100, // Convert to percentage
     paybackPeriod,
