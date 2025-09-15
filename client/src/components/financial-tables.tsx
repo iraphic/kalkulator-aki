@@ -227,10 +227,10 @@ export function CogsTable({ projections }: CogsTableProps) {
       <Table className="w-full table-striped">
         <TableHeader className="bg-muted">
           <TableRow>
-            <TableHead className="px-4 py-3 text-left font-medium text-white">Label</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium text-white">Jumlah</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/3">Label</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground">Jumlah</TableHead>
             {projections.map((_, index) => (
-              <TableHead key={index} className="px-4 py-3 text-right font-medium text-white">
+              <TableHead key={index} className="px-4 py-3 text-center font-medium text-foreground">
                 Tahun ke-{index}
               </TableHead>
             ))}
@@ -285,12 +285,12 @@ export function OpexTable({ projections }: OpexTableProps) {
   return (
     <div className="overflow-x-auto">
       <Table className="w-full table-striped">
-        <TableHeader className="bg-primary text-primary-foreground">
+        <TableHeader className="bg-muted">
           <TableRow>
-            <TableHead className="px-4 py-3 text-left font-medium">Label</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium">Jumlah</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-foreground w-1/3">Label</TableHead>
+            <TableHead className="px-4 py-3 text-center font-medium text-foreground">Jumlah</TableHead>
             {projections.map((_, index) => (
-              <TableHead key={index} className="px-4 py-3 text-right font-medium">
+              <TableHead key={index} className="px-4 py-3 text-center font-medium text-foreground">
                 Tahun ke-{index}
               </TableHead>
             ))}
