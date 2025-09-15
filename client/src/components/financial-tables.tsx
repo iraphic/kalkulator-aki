@@ -23,10 +23,10 @@ export function ProfitLossTable({ projections }: ProfitLossTableProps) {
       <Table className="w-full table-striped">
         <TableHeader className="bg-muted">
           <TableRow>
-            <TableHead className="px-4 py-3 text-left font-medium text-foreground">Label</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium text-foreground">Jumlah</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-white">Label</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-white">Jumlah</TableHead>
             {projections.map((_, index) => (
-              <TableHead key={index} className="px-4 py-3 text-right font-medium text-foreground">
+              <TableHead key={index} className="px-4 py-3 text-right font-medium text-white">
                 Tahun ke-{index}
               </TableHead>
             ))}
@@ -132,10 +132,10 @@ export function CashFlowTable({ projections }: CashFlowTableProps) {
       <Table className="w-full table-striped">
         <TableHeader className="bg-muted">
           <TableRow>
-            <TableHead className="px-4 py-3 text-left font-medium text-foreground">Label</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium text-foreground">Jumlah</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-white">Label</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-white">Jumlah</TableHead>
             {projections.map((_, index) => (
-              <TableHead key={index} className="px-4 py-3 text-right font-medium text-foreground">
+              <TableHead key={index} className="px-4 py-3 text-right font-medium text-white">
                 Tahun ke-{index}
               </TableHead>
             ))}
@@ -227,10 +227,10 @@ export function CogsTable({ projections }: CogsTableProps) {
       <Table className="w-full table-striped">
         <TableHeader className="bg-muted">
           <TableRow>
-            <TableHead className="px-4 py-3 text-left font-medium text-foreground">Label</TableHead>
-            <TableHead className="px-4 py-3 text-right font-medium text-foreground">Jumlah</TableHead>
+            <TableHead className="px-4 py-3 text-left font-medium text-white">Label</TableHead>
+            <TableHead className="px-4 py-3 text-right font-medium text-white">Jumlah</TableHead>
             {projections.map((_, index) => (
-              <TableHead key={index} className="px-4 py-3 text-right font-medium text-foreground">
+              <TableHead key={index} className="px-4 py-3 text-right font-medium text-white">
                 Tahun ke-{index}
               </TableHead>
             ))}
