@@ -556,7 +556,7 @@ export default function FinancialAnalysis() {
                           type="text"
                           value={formatPercentage(results.irr).replace('%', '')}
                           readOnly
-                          className={`pr-8 ${results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+                          className={`pr-8 ${results.irr >= 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
                           data-testid="output-irr"
                         />
                         <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">%</span>
@@ -593,12 +593,12 @@ export default function FinancialAnalysis() {
                         </div>
                       </div>
                       <div className={`p-3 rounded-md border ${
-                        results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                        results.irr >= 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                       }`}>
                         <div className={`font-medium text-sm ${
-                          results.irr > 15 ? 'text-green-800' : 'text-red-800'
+                          results.irr >= 15 ? 'text-green-800' : 'text-red-800'
                         }`}>
-                          IRR: {results.irr > 15 ? 'Layak' : 'Tidak Layak'}
+                          IRR: {results.irr >= 15 ? 'Layak' : 'Tidak Layak'}
                         </div>
                       </div>
                     </div>
