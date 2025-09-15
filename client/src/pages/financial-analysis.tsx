@@ -379,92 +379,236 @@ export default function FinancialAnalysis() {
               </CardContent>
             </Card>
 
-            {/* Feasibility Analysis */}
+            {/* Financial Summary Form */}
             <Card>
               <CardHeader className="bg-primary text-primary-foreground">
-                <CardTitle className="text-lg font-semibold">Feasibility Analysis</CardTitle>
+                <CardTitle className="text-lg font-semibold">Ringkasan Analisis Keuangan</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-6">
-                    <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-lg border border-green-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-lg text-green-800">NPV (Net Present Value)</h3>
-                          <p className="text-sm text-green-600 mt-1">Nilai sekarang dari arus kas masa depan</p>
-                        </div>
-                        <div className="text-right">
-                          <div className={`text-2xl font-semibold ${results.npv <= 0 ? 'text-red-800' : 'text-green-800'}`} data-testid="npv-value">
-                            {formatCurrency(results.npv)}
-                          </div>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                            results.npv > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`} data-testid="npv-status">
-                            {results.npv > 0 ? 'Layak' : 'Tidak Layak'}
-                          </span>
-                        </div>
+                <div className="space-y-6">
+                  {/* Nilai CAPEX (Cost) */}
+                  <div>
+                    <Label className="block text-sm font-medium text-foreground mb-2">
+                      Nilai CAPEX (Cost)
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        value={formatCurrency(inputs.investmentCost).replace('Rp ', '')}
+                        readOnly
+                        className="currency-input pl-8 bg-muted"
+                        data-testid="output-capex"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Nilai COGS and Nilai OPEX - side by side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Nilai COGS
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                        <Input
+                          type="text"
+                          value={formatCurrency(results.totalCogs).replace('Rp ', '')}
+                          readOnly
+                          className="currency-input pl-8 bg-muted"
+                          data-testid="output-cogs"
+                        />
                       </div>
                     </div>
-                    
-                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg border border-blue-200">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-lg text-blue-800">IRR (Internal Rate of Return)</h3>
-                          <p className="text-sm text-blue-600 mt-1">Tingkat pengembalian internal investasi</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold text-blue-800 positive-metric" data-testid="irr-value">
-                            {formatPercentage(results.irr)}
-                          </div>
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${
-                            results.irr > 15 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                          }`} data-testid="irr-status">
-                            {results.irr > 15 ? 'Layak' : 'Tidak Layak'}
-                          </span>
-                        </div>
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Nilai OPEX
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                        <Input
+                          type="text"
+                          value={formatCurrency(results.totalOpex).replace('Rp ', '')}
+                          readOnly
+                          className="currency-input pl-8 bg-muted"
+                          data-testid="output-opex"
+                        />
                       </div>
                     </div>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <h3 className="font-semibold text-foreground">Interpretation</h3>
-                    <div className="space-y-3 text-sm">
-                      <div className={`p-4 rounded-lg border ${
+
+                  {/* Estimasi Revenue */}
+                  <div>
+                    <Label className="block text-sm font-medium text-foreground mb-2">
+                      Estimasi Revenue
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        value={formatCurrency(results.totalRevenue).replace('Rp ', '')}
+                        readOnly
+                        className="currency-input pl-8 bg-muted"
+                        data-testid="output-revenue"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Gross Profit and Gross Profit Margin - side by side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Gross Profit
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                        <Input
+                          type="text"
+                          value={formatCurrency(results.grossProfit).replace('Rp ', '')}
+                          readOnly
+                          className="currency-input pl-8 bg-muted"
+                          data-testid="output-gross-profit"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Gross Profit Margin
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={formatPercentage(results.grossProfitMargin).replace('%', '')}
+                          readOnly
+                          className="pr-8 bg-muted"
+                          data-testid="output-gross-profit-margin"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Net Income and Net Income Margin - side by side */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Net Income
+                      </Label>
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                        <Input
+                          type="text"
+                          value={formatCurrency(results.totalNetIncome).replace('Rp ', '')}
+                          readOnly
+                          className="currency-input pl-8 bg-muted"
+                          data-testid="output-net-income"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Net Income Margin
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={formatPercentage(results.netIncomeMargin).replace('%', '')}
+                          readOnly
+                          className="pr-8 bg-muted"
+                          data-testid="output-net-income-margin"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* NPV */}
+                  <div>
+                    <Label className="block text-sm font-medium text-foreground mb-2">
+                      NPV
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        value={formatCurrency(results.npv).replace('Rp ', '')}
+                        readOnly
+                        className={`currency-input pl-8 ${results.npv > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+                        data-testid="output-npv"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Jangka Waktu, IRR, and Payback Period - three fields in one row */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Jangka Waktu
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={inputs.contractPeriod.toString()}
+                          readOnly
+                          className="pr-16 bg-muted"
+                          data-testid="output-period"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Month</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        IRR
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={formatPercentage(results.irr).replace('%', '')}
+                          readOnly
+                          className={`pr-8 ${results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
+                          data-testid="output-irr"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">%</span>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="block text-sm font-medium text-foreground mb-2">
+                        Payback Period
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          type="text"
+                          value={`${results.paybackPeriod.years}.${results.paybackPeriod.months}`}
+                          readOnly
+                          className="pr-16 bg-muted"
+                          data-testid="output-payback-period"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Month</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Status Summary */}
+                  <div className="mt-8 p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-lg border">
+                    <h3 className="font-semibold text-foreground mb-3">Status Kelayakan</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className={`p-3 rounded-md border ${
                         results.npv > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                       }`}>
-                        <div className={`font-medium mb-1 ${
+                        <div className={`font-medium text-sm ${
                           results.npv > 0 ? 'text-green-800' : 'text-red-800'
                         }`}>
-                          {results.npv > 0 ? '✓ NPV Positif' : '✗ NPV Negatif'}
+                          NPV: {results.npv > 0 ? 'Layak' : 'Tidak Layak'}
                         </div>
-                        <p className={results.npv > 0 ? 'text-green-700' : 'text-red-700'}>
-                          {results.npv > 0 
-                            ? 'Investasi menghasilkan nilai lebih besar dari biaya modal, proyek layak dilakukan.'
-                            : 'Investasi tidak menghasilkan nilai yang cukup, proyek tidak layak dilakukan.'
-                          }
-                        </p>
                       </div>
-                      <div className={`p-4 rounded-lg border ${
-                        results.irr > 17.8 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+                      <div className={`p-3 rounded-md border ${
+                        results.irr > 15 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
                       }`}>
-                        <div className={`font-medium mb-1 ${
-                          results.irr > 17.8 ? 'text-green-800' : 'text-red-800'
+                        <div className={`font-medium text-sm ${
+                          results.irr > 15 ? 'text-green-800' : 'text-red-800'
                         }`}>
-                          {results.irr > 17.8 ? '✓ IRR > WACC' : '✗ IRR < WACC'}
+                          IRR: {results.irr > 15 ? 'Layak' : 'Tidak Layak'}
                         </div>
-                        <p className={results.irr > 17.8 ? 'text-green-700' : 'text-red-700'}>
-                          IRR ({formatPercentage(results.irr)}) {results.irr > 17.8 ? 'lebih besar' : 'lebih kecil'} dari WACC (17.8%), 
-                          {results.irr > 17.8 ? ' menunjukkan tingkat pengembalian yang menarik.' : ' menunjukkan tingkat pengembalian yang tidak memadai.'}
-                        </p>
-                      </div>
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <div className="font-medium text-blue-800 mb-1">Payback Period</div>
-                        <div className="text-2xl font-bold text-blue-800 mb-2" data-testid="payback-period">
-                          {results.paybackPeriod.years} tahun {results.paybackPeriod.months} bulan
-                        </div>
-                        <p className="text-blue-700 text-sm">
-                          Investasi akan kembali dalam {results.paybackPeriod.totalMonths} bulan
-                        </p>
                       </div>
                     </div>
                   </div>

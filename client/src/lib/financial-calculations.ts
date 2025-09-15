@@ -53,6 +53,10 @@ export interface CalculationResults {
   totalOpex: number;
   marketingCost: number;
   operationalCost: number;
+  grossProfit: number;
+  grossProfitMargin: number;
+  totalNetIncome: number;
+  netIncomeMargin: number;
   yearlyProjections: YearlyProjection[];
   cashFlowProjections: CashFlowProjection[];
   cogsProjections: CogsProjection[];
@@ -190,6 +194,14 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
   // Payback Period calculation
   const paybackPeriod = calculatePaybackPeriod(cashFlowProjections);
 
+  // Calculate profit and margin metrics
+  const grossProfit = totalRevenue - totalCogs;
+  const grossProfitMargin = totalRevenue > 0 ? (grossProfit / totalRevenue) * 100 : 0;
+  
+  // Calculate total net income from all years
+  const totalNetIncome = yearlyProjections.reduce((sum, projection) => sum + projection.netIncome, 0);
+  const netIncomeMargin = totalRevenue > 0 ? (totalNetIncome / totalRevenue) * 100 : 0;
+
   return {
     totalRevenue,
     otcRevenue,
@@ -202,6 +214,10 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     totalOpex,
     marketingCost,
     operationalCost,
+    grossProfit,
+    grossProfitMargin,
+    totalNetIncome,
+    netIncomeMargin,
     yearlyProjections,
     cashFlowProjections,
     cogsProjections,
