@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Settings } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
-import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
+import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency, stripCurrencyPrefix } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -632,7 +632,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.grossProfit).replace(/^Rp\s*/, '')}
+                          value={stripCurrencyPrefix(formatCurrency(results.grossProfit))}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-gross-profit"
@@ -666,7 +666,7 @@ export default function FinancialAnalysis() {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                         <Input
                           type="text"
-                          value={formatCurrency(results.totalNetIncome).replace(/^Rp\s*/, '')}
+                          value={stripCurrencyPrefix(formatCurrency(results.totalNetIncome))}
                           readOnly
                           className="currency-input pl-8 bg-muted"
                           data-testid="output-net-income"
@@ -699,7 +699,7 @@ export default function FinancialAnalysis() {
                       <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                       <Input
                         type="text"
-                        value={formatCurrency(results.npv).replace(/^Rp\s*/, '')}
+                        value={stripCurrencyPrefix(formatCurrency(results.npv))}
                         readOnly
                         className={`currency-input pl-8 ${results.npv > 0 ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}
                         data-testid="output-npv"
