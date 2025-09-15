@@ -353,38 +353,38 @@ export function PLSummaryTable({ results }: PLSummaryTableProps) {
         <TableBody>
           <TableRow>
             <TableCell className="px-4 py-3 font-semibold bg-muted">Revenue</TableCell>
-            <TableCell className="px-4 py-3 text-center" data-testid="pl-revenue-total">{formatCurrency(results.totalRevenue)}</TableCell>
+            <TableCell className={`px-4 py-3 text-center ${results.totalRevenue < 0 ? 'text-red-600' : ''}`} data-testid="pl-revenue-total">{formatCurrency(results.totalRevenue)}</TableCell>
             {results.yearlyProjections.slice(1).map((proj, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-revenue-year-${index + 1}`}>
+              <TableCell key={index} className={`px-4 py-3 text-center ${proj.revenue < 0 ? 'text-red-600' : ''}`} data-testid={`pl-revenue-year-${index + 1}`}>
                 {formatCurrency(proj.revenue)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-semibold">Direct Cost (COGS)</TableCell>
-            <TableCell className="px-4 py-3 text-center" data-testid="pl-cogs-total">{formatCurrency(results.totalCogs)}</TableCell>
+            <TableCell className={`px-4 py-3 text-center ${results.totalCogs < 0 ? 'text-red-600' : ''}`} data-testid="pl-cogs-total">{formatCurrency(results.totalCogs)}</TableCell>
             {results.cogsProjections.slice(1).map((cogs, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-cogs-year-${index + 1}`}>
+              <TableCell key={index} className={`px-4 py-3 text-center ${cogs.totalCogs < 0 ? 'text-red-600' : ''}`} data-testid={`pl-cogs-year-${index + 1}`}>
                 {formatCurrency(cogs.totalCogs)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-semibold">Depresiasi</TableCell>
-            <TableCell className="px-4 py-3 text-center" data-testid="pl-depreciation-total">{formatCurrency(results.yearlyProjections.reduce((sum, proj) => sum + proj.depreciation, 0))}</TableCell>
+            <TableCell className={`px-4 py-3 text-center ${results.yearlyProjections.reduce((sum, proj) => sum + proj.depreciation, 0) < 0 ? 'text-red-600' : ''}`} data-testid="pl-depreciation-total">{formatCurrency(results.yearlyProjections.reduce((sum, proj) => sum + proj.depreciation, 0))}</TableCell>
             {results.yearlyProjections.slice(1).map((proj, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-depreciation-year-${index + 1}`}>
+              <TableCell key={index} className={`px-4 py-3 text-center ${proj.depreciation < 0 ? 'text-red-600' : ''}`} data-testid={`pl-depreciation-year-${index + 1}`}>
                 {formatCurrency(proj.depreciation)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow className="bg-muted">
             <TableCell className="px-4 py-3 font-semibold">Gross Profit (GP)</TableCell>
-            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="pl-gross-profit-total">{formatCurrency(results.grossProfit)}</TableCell>
+            <TableCell className={`px-4 py-3 text-center font-semibold ${results.grossProfit < 0 ? 'text-red-600' : ''}`} data-testid="pl-gross-profit-total">{formatCurrency(results.grossProfit)}</TableCell>
             {results.yearlyProjections.slice(1).map((proj, index) => {
               const yearlyGrossProfit = proj.revenue - (results.cogsProjections[index + 1]?.totalCogs || 0);
               return (
-                <TableCell key={index} className="px-4 py-3 text-center font-semibold" data-testid={`pl-gross-profit-year-${index + 1}`}>
+                <TableCell key={index} className={`px-4 py-3 text-center font-semibold ${yearlyGrossProfit < 0 ? 'text-red-600' : ''}`} data-testid={`pl-gross-profit-year-${index + 1}`}>
                   {formatCurrency(yearlyGrossProfit)}
                 </TableCell>
               );
@@ -402,20 +402,20 @@ export function PLSummaryTable({ results }: PLSummaryTableProps) {
           </TableRow>
           <TableRow className="bg-muted">
             <TableCell className="px-4 py-3 font-semibold">Net Income (NI)</TableCell>
-            <TableCell className="px-4 py-3 text-center font-semibold" data-testid="pl-net-income-total">{formatCurrency(results.totalNetIncome)}</TableCell>
+            <TableCell className={`px-4 py-3 text-center font-semibold ${results.totalNetIncome < 0 ? 'text-red-600' : ''}`} data-testid="pl-net-income-total">{formatCurrency(results.totalNetIncome)}</TableCell>
             {results.yearlyProjections.slice(1).map((proj, index) => (
-              <TableCell key={index} className="px-4 py-3 text-center font-semibold" data-testid={`pl-net-income-year-${index + 1}`}>
+              <TableCell key={index} className={`px-4 py-3 text-center font-semibold ${proj.netIncome < 0 ? 'text-red-600' : ''}`} data-testid={`pl-net-income-year-${index + 1}`}>
                 {formatCurrency(proj.netIncome)}
               </TableCell>
             ))}
           </TableRow>
           <TableRow>
             <TableCell className="px-4 py-3 font-semibold">NI Margin</TableCell>
-            <TableCell className="px-4 py-3 text-center" data-testid="pl-ni-margin-total">{formatPercentage(results.netIncomeMargin)}</TableCell>
+            <TableCell className={`px-4 py-3 text-center ${results.netIncomeMargin < 0 ? 'text-red-600' : ''}`} data-testid="pl-ni-margin-total">{formatPercentage(results.netIncomeMargin)}</TableCell>
             {results.yearlyProjections.slice(1).map((proj, index) => {
               const margin = proj.revenue > 0 ? (proj.netIncome / proj.revenue) * 100 : 0;
               return (
-                <TableCell key={index} className="px-4 py-3 text-center" data-testid={`pl-ni-margin-year-${index + 1}`}>
+                <TableCell key={index} className={`px-4 py-3 text-center ${margin < 0 ? 'text-red-600' : ''}`} data-testid={`pl-ni-margin-year-${index + 1}`}>
                   {formatPercentage(margin)}
                 </TableCell>
               );
