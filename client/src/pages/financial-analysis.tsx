@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
+import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
@@ -625,6 +625,16 @@ export default function FinancialAnalysis() {
               </CardHeader>
               <CardContent className="p-0">
                 <CashFlowSummaryTable results={results} />
+              </CardContent>
+            </Card>
+
+            {/* NPV Analysis Table */}
+            <Card>
+              <CardHeader className="bg-primary text-primary-foreground">
+                <CardTitle className="text-lg font-semibold">Analisis NPV, IRR & Payback Period</CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <NPVAnalysisTable results={results} />
               </CardContent>
             </Card>
 
