@@ -455,18 +455,24 @@ export default function FinancialAnalysis() {
                       <SelectContent>
                         <SelectItem value="12">12 Bulan</SelectItem>
                         <SelectItem value="24">24 Bulan</SelectItem>
+                        <SelectItem value="36">36 Bulan</SelectItem>
                         <SelectItem value="48">48 Bulan</SelectItem>
+                        <SelectItem value="60">60 Bulan</SelectItem>
                         <SelectItem value="custom">Custom</SelectItem>
                       </SelectContent>
                     </Select>
                     {inputValues.isCustomPeriod && (
-                      <Input
-                        type="number"
-                        placeholder="Masukkan periode (bulan)"
-                        value={inputValues.contractPeriod}
-                        onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
-                        data-testid="input-custom-period"
-                      />
+                      <div className="relative">
+                        <Input
+                          type="number"
+                          placeholder="Masukkan periode"
+                          value={inputValues.contractPeriod}
+                          onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
+                          className="pr-16"
+                          data-testid="input-custom-period"
+                        />
+                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">bulan</span>
+                      </div>
                     )}
                   </div>
                 </div>
