@@ -224,8 +224,8 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     // Recalculate tax - only apply tax if EBIT is positive
     yearlyProjections[i].tax = yearlyProjections[i].ebit > 0 ? yearlyProjections[i].ebit * TAX_RATE : 0;
     
-    // Recalculate net income
-    yearlyProjections[i].netIncome = yearlyProjections[i].ebit - yearlyProjections[i].tax;
+    // Calculate Net Income using new formula: Total Revenue − COGS − Depreciation − (OPEX + Tax)
+    yearlyProjections[i].netIncome = yearlyProjections[i].revenue - cogsValue - yearlyProjections[i].depreciation - opexValue - yearlyProjections[i].tax;
   }
 
   // Calculate totals from projections
