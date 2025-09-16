@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
@@ -30,6 +31,9 @@ export default function FinancialAnalysis() {
     otcCost: "",
   });
 
+  const [periodType, setPeriodType] = useState<string>("");
+  const [customPeriod, setCustomPeriod] = useState<string>("");
+
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
     if (field === 'customerName') {
@@ -46,6 +50,23 @@ export default function FinancialAnalysis() {
       const numValue = parseCurrency(value);
       setInputs(prev => ({ ...prev, [field]: numValue }));
     }
+  };
+
+  const handlePeriodTypeChange = (value: string) => {
+    setPeriodType(value);
+    if (value !== 'custom') {
+      const months = parseInt(value);
+      setInputValues(prev => ({ ...prev, contractPeriod: months.toString() }));
+      setInputs(prev => ({ ...prev, contractPeriod: months }));
+      setCustomPeriod("");
+    }
+  };
+
+  const handleCustomPeriodChange = (value: string) => {
+    setCustomPeriod(value);
+    setInputValues(prev => ({ ...prev, contractPeriod: value }));
+    const numValue = parseInt(value) || 0;
+    setInputs(prev => ({ ...prev, contractPeriod: numValue }));
   };
 
   const calculateAnalysis = () => {
@@ -415,14 +436,34 @@ export default function FinancialAnalysis() {
                     <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
                       Periode Kontrak (Bulan)
                     </Label>
-                    <Input
-                      type="number"
-                      id="period"
-                      placeholder="0"
-                      value={inputValues.contractPeriod}
-                      onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
-                      data-testid="input-period"
-                    />
+                    <div className="space-y-2">
+                      <Select value={periodType} onValueChange={handlePeriodTypeChange} data-testid="input-period">
+                        <SelectTrigger>
+                          <SelectValue placeholder="Pilih periode kontrak" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="12">12 Bulan</SelectItem>
+                          <SelectItem value="24">24 Bulan</SelectItem>
+                          <SelectItem value="36">36 Bulan</SelectItem>
+                          <SelectItem value="48">48 Bulan</SelectItem>
+                          <SelectItem value="60">60 Bulan</SelectItem>
+                          <SelectItem value="72">72 Bulan</SelectItem>
+                          <SelectItem value="custom">Custom</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {periodType === 'custom' && (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            placeholder="0"
+                            value={customPeriod}
+                            onChange={(e) => handleCustomPeriodChange(e.target.value)}
+                            className="flex-1"
+                          />
+                          <span className="text-sm text-muted-foreground">bulan</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
               </div>
             </div>
