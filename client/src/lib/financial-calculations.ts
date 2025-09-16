@@ -4,6 +4,7 @@ export interface FinancialInputs {
   monthlyRevenue: number;
   contractPeriod: number;
   otcCost: number;
+  serviceDetails?: string;
 }
 
 export interface YearlyProjection {

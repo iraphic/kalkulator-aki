@@ -20,6 +20,7 @@ export default function FinancialAnalysis() {
     monthlyRevenue: 0,
     contractPeriod: 0,
     otcCost: 0,
+    serviceDetails: "",
   });
 
   const [results, setResults] = useState<CalculationResults | null>(null);
@@ -29,6 +30,7 @@ export default function FinancialAnalysis() {
     monthlyRevenue: "",
     contractPeriod: "",
     otcCost: "",
+    serviceDetails: "",
   });
 
   const [periodType, setPeriodType] = useState<string>("");
@@ -36,7 +38,7 @@ export default function FinancialAnalysis() {
 
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
-    if (field === 'customerName') {
+    if (field === 'customerName' || field === 'serviceDetails') {
       setInputValues(prev => ({ ...prev, [field]: value }));
       setInputs(prev => ({ ...prev, [field]: value }));
     } else if (field === 'contractPeriod') {
@@ -353,118 +355,171 @@ export default function FinancialAnalysis() {
             <div>
               <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
               
-              {/* First grid: Customer Name + OTC Cost */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-                  {/* Customer Name - Takes more space */}
-                  <div className="sm:col-span-2 lg:col-span-3">
-                    <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
-                      Nama Pelanggan
-                    </Label>
+              {/* 3x3 Grid Layout */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Row 1: Nama Pelanggan | Total BOQ Biaya Investasi | Periode Kontrak */}
+                <div>
+                  <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
+                    Nama Pelanggan
+                  </Label>
+                  <Input
+                    type="text"
+                    id="customer-name"
+                    placeholder="Masukkan nama pelanggan"
+                    value={inputValues.customerName}
+                    onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    className="w-full"
+                    data-testid="input-customer-name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
+                    Total BOQ Biaya Investasi
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                     <Input
                       type="text"
-                      id="customer-name"
-                      placeholder="Masukkan nama pelanggan"
-                      value={inputValues.customerName}
-                      onChange={(e) => handleInputChange('customerName', e.target.value)}
-                      className="w-full"
-                      data-testid="input-customer-name"
+                      id="investment"
+                      placeholder="0"
+                      value={inputValues.investmentCost}
+                      onChange={(e) => handleInputChange('investmentCost', e.target.value)}
+                      className="currency-input pl-8"
+                      data-testid="input-investment"
                     />
                   </div>
+                </div>
 
-                  {/* OTC Cost - Takes less space */}
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
-                      Biaya OTC
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="otc-cost"
-                        placeholder="0"
-                        value={inputValues.otcCost}
-                        onChange={(e) => handleInputChange('otcCost', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-otc-cost"
-                      />
-                    </div>
+                <div>
+                  <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
+                    Periode Kontrak
+                  </Label>
+                  <div className="space-y-2">
+                    <Select value={periodType} onValueChange={handlePeriodTypeChange} data-testid="input-period">
+                      <SelectTrigger>
+                        <SelectValue placeholder="Pilih periode kontrak" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12 Bulan</SelectItem>
+                        <SelectItem value="24">24 Bulan</SelectItem>
+                        <SelectItem value="36">36 Bulan</SelectItem>
+                        <SelectItem value="48">48 Bulan</SelectItem>
+                        <SelectItem value="60">60 Bulan</SelectItem>
+                        <SelectItem value="72">72 Bulan</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {periodType === 'custom' && (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={customPeriod}
+                          onChange={(e) => handleCustomPeriodChange(e.target.value)}
+                          className="flex-1"
+                        />
+                        <span className="text-sm text-muted-foreground">bulan</span>
+                      </div>
+                    )}
                   </div>
-              </div>
+                </div>
 
-              {/* Second grid: Investment Cost, Monthly Revenue, Contract Period */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Investment Cost */}
-                  <div>
-                    <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
-                      Biaya Investasi (BOQ)
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="investment"
-                        placeholder="0"
-                        value={inputValues.investmentCost}
-                        onChange={(e) => handleInputChange('investmentCost', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-investment"
-                      />
-                    </div>
-                  </div>
+                {/* Row 2: Jenis & Detail Layanan | Biaya Bulanan | Biaya Aktivasi */}
+                <div>
+                  <Label htmlFor="service-details" className="block text-sm font-medium text-foreground mb-2">
+                    Jenis & Detail Layanan
+                  </Label>
+                  <Input
+                    type="text"
+                    id="service-details"
+                    placeholder="Contoh : Astinet 100 Mbps"
+                    value={inputValues.serviceDetails}
+                    onChange={(e) => handleInputChange('serviceDetails', e.target.value)}
+                    className="w-full"
+                    data-testid="input-service-details"
+                  />
+                </div>
 
-                  {/* Monthly Revenue */}
-                  <div>
-                    <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
-                      Pendapatan per Bulan
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="revenue"
-                        placeholder="0"
-                        value={inputValues.monthlyRevenue}
-                        onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-revenue"
-                      />
-                    </div>
+                <div>
+                  <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
+                    Biaya Bulanan
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                    <Input
+                      type="text"
+                      id="revenue"
+                      placeholder="0"
+                      value={inputValues.monthlyRevenue}
+                      onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
+                      className="currency-input pl-8"
+                      data-testid="input-revenue"
+                    />
                   </div>
+                </div>
 
-                  {/* Contract Period */}
-                  <div>
-                    <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
-                      Periode Kontrak (Bulan)
-                    </Label>
-                    <div className="space-y-2">
-                      <Select value={periodType} onValueChange={handlePeriodTypeChange} data-testid="input-period">
-                        <SelectTrigger>
-                          <SelectValue placeholder="Pilih periode kontrak" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="12">12 Bulan</SelectItem>
-                          <SelectItem value="24">24 Bulan</SelectItem>
-                          <SelectItem value="36">36 Bulan</SelectItem>
-                          <SelectItem value="48">48 Bulan</SelectItem>
-                          <SelectItem value="60">60 Bulan</SelectItem>
-                          <SelectItem value="72">72 Bulan</SelectItem>
-                          <SelectItem value="custom">Custom</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      {periodType === 'custom' && (
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            value={customPeriod}
-                            onChange={(e) => handleCustomPeriodChange(e.target.value)}
-                            className="flex-1"
-                          />
-                          <span className="text-sm text-muted-foreground">bulan</span>
-                        </div>
-                      )}
-                    </div>
+                <div>
+                  <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
+                    Biaya Aktivasi
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                    <Input
+                      type="text"
+                      id="otc-cost"
+                      placeholder="0"
+                      value={inputValues.otcCost}
+                      onChange={(e) => handleInputChange('otcCost', e.target.value)}
+                      className="currency-input pl-8"
+                      data-testid="input-otc-cost"
+                    />
                   </div>
+                </div>
+
+                {/* Row 3: Button | Total Revenue Bulanan | Total Biaya Aktivasi */}
+                <div className="flex items-end">
+                  <Button
+                    type="button"
+                    variant="default"
+                    className="w-full bg-slate-800 hover:bg-slate-700 dark:bg-slate-200 dark:hover:bg-slate-300 dark:text-slate-800 text-white font-medium"
+                    data-testid="button-add-service"
+                  >
+                    ⊕ Tambah Layanan Lainnya
+                  </Button>
+                </div>
+
+                <div>
+                  <Label className="block text-sm font-medium text-foreground mb-2">
+                    Total Revenue Bulanan
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                    <Input
+                      type="text"
+                      value={inputs.monthlyRevenue > 0 ? formatCurrency(inputs.monthlyRevenue) : formatCurrency(0)}
+                      readOnly
+                      className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
+                      data-testid="display-total-monthly-revenue"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="block text-sm font-medium text-foreground mb-2">
+                    Total Biaya Aktivasi
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                    <Input
+                      type="text"
+                      value={inputs.otcCost > 0 ? formatCurrency(inputs.otcCost) : formatCurrency(0)}
+                      readOnly
+                      className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
+                      data-testid="display-total-activation-cost"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
