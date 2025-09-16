@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Settings } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
-import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
+import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults, type Service } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency, stripCurrencyPrefix } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -17,35 +17,41 @@ export default function FinancialAnalysis() {
   const [inputs, setInputs] = useState<FinancialInputs>({
     customerName: "",
     investmentCost: 0,
-    monthlyRevenue: 0,
     contractPeriod: 0,
-    otcCost: 0,
-    serviceDetails: "",
+    services: [{
+      id: "1",
+      serviceDetails: "",
+      monthlyRevenue: 0,
+      otcCost: 0,
+    }],
   });
 
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [inputValues, setInputValues] = useState({
     customerName: "",
     investmentCost: "",
-    monthlyRevenue: "",
     contractPeriod: "",
-    otcCost: "",
-    serviceDetails: "",
+    services: [{
+      id: "1",
+      serviceDetails: "",
+      monthlyRevenue: "",
+      otcCost: "",
+    }],
   });
 
   const [periodType, setPeriodType] = useState<string>("");
   const [customPeriod, setCustomPeriod] = useState<string>("");
 
 
-  const handleInputChange = (field: keyof FinancialInputs, value: string) => {
-    if (field === 'customerName' || field === 'serviceDetails') {
+  const handleInputChange = (field: keyof Pick<FinancialInputs, 'customerName' | 'investmentCost' | 'contractPeriod'>, value: string) => {
+    if (field === 'customerName') {
       setInputValues(prev => ({ ...prev, [field]: value }));
       setInputs(prev => ({ ...prev, [field]: value }));
     } else if (field === 'contractPeriod') {
       setInputValues(prev => ({ ...prev, [field]: value }));
       const numValue = parseInt(value) || 0;
       setInputs(prev => ({ ...prev, [field]: numValue }));
-    } else {
+    } else if (field === 'investmentCost') {
       // For currency fields, format the display value with thousands separators
       const formattedValue = formatInputCurrency(value);
       setInputValues(prev => ({ ...prev, [field]: formattedValue }));
@@ -53,6 +59,74 @@ export default function FinancialAnalysis() {
       setInputs(prev => ({ ...prev, [field]: numValue }));
     }
   };
+
+  const handleServiceChange = (serviceId: string, field: keyof Service, value: string) => {
+    // Update display values
+    setInputValues(prev => ({
+      ...prev,
+      services: prev.services.map(service =>
+        service.id === serviceId
+          ? {
+              ...service,
+              [field]: field === 'serviceDetails' ? value : formatInputCurrency(value)
+            }
+          : service
+      )
+    }));
+
+    // Update actual values
+    setInputs(prev => ({
+      ...prev,
+      services: prev.services.map(service =>
+        service.id === serviceId
+          ? {
+              ...service,
+              [field]: field === 'serviceDetails' ? value : parseCurrency(value)
+            }
+          : service
+      )
+    }));
+  };
+
+  const addService = () => {
+    const newId = Date.now().toString();
+    const newService = {
+      id: newId,
+      serviceDetails: "",
+      monthlyRevenue: 0,
+      otcCost: 0,
+    };
+    const newServiceDisplay = {
+      id: newId,
+      serviceDetails: "",
+      monthlyRevenue: "",
+      otcCost: "",
+    };
+
+    setInputs(prev => ({
+      ...prev,
+      services: [...prev.services, newService]
+    }));
+    setInputValues(prev => ({
+      ...prev,
+      services: [...prev.services, newServiceDisplay]
+    }));
+  };
+
+  const removeService = (serviceId: string) => {
+    setInputs(prev => ({
+      ...prev,
+      services: prev.services.filter(service => service.id !== serviceId)
+    }));
+    setInputValues(prev => ({
+      ...prev,
+      services: prev.services.filter(service => service.id !== serviceId)
+    }));
+  };
+
+  // Calculate totals for display
+  const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
+  const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
 
   const handlePeriodTypeChange = (value: string) => {
     setPeriodType(value);
@@ -72,7 +146,11 @@ export default function FinancialAnalysis() {
   };
 
   const calculateAnalysis = () => {
-    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
+    const hasValidServices = inputs.services.length > 0 && inputs.services.some(service => 
+      service.serviceDetails.trim() !== "" && (service.monthlyRevenue > 0 || service.otcCost > 0)
+    );
+    
+    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.contractPeriod > 0 && hasValidServices) {
       const calculatedResults = calculateFinancialAnalysis(inputs);
       setResults(calculatedResults);
     }
@@ -82,13 +160,22 @@ export default function FinancialAnalysis() {
     const wb = XLSX.utils.book_new();
     
     // Input Summary Sheet
+    const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
+    const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
+    
     const inputData = [
       ['Parameter', 'Nilai'],
       ['Nama Pelanggan', inputs.customerName],
       ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
-      ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
+      ['Total Pendapatan per Bulan', formatCurrency(totalMonthlyRevenue)],
       ['Periode (Bulan)', inputs.contractPeriod],
-      ['Biaya OTC', formatCurrency(inputs.otcCost)],
+      ['Total Biaya OTC', formatCurrency(totalOtcCost)],
+      ['', ''],
+      ['Layanan Detail', ''],
+      ...inputs.services.map((service, index) => [
+        `Layanan ${index + 1}: ${service.serviceDetails}`,
+        `Monthly: ${formatCurrency(service.monthlyRevenue)}, OTC: ${formatCurrency(service.otcCost)}`
+      ]),
       ['WACC', '15%'],
       ['Tax', '22%'],
       ['', ''],
@@ -262,7 +349,11 @@ export default function FinancialAnalysis() {
 
 
   useEffect(() => {
-    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
+    const hasValidServices = inputs.services.length > 0 && inputs.services.some(service => 
+      service.serviceDetails.trim() !== "" && (service.monthlyRevenue > 0 || service.otcCost > 0)
+    );
+    
+    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.contractPeriod > 0 && hasValidServices) {
       calculateAnalysis();
     }
   }, [inputs]);
@@ -425,99 +516,133 @@ export default function FinancialAnalysis() {
                   </div>
                 </div>
 
-                {/* Row 2: Jenis & Detail Layanan | Biaya Bulanan | Biaya Aktivasi */}
-                <div>
-                  <Label htmlFor="service-details" className="block text-sm font-medium text-foreground mb-2">
-                    Jenis & Detail Layanan
-                  </Label>
-                  <Input
-                    type="text"
-                    id="service-details"
-                    placeholder="Contoh : Astinet 100 Mbps"
-                    value={inputValues.serviceDetails}
-                    onChange={(e) => handleInputChange('serviceDetails', e.target.value)}
-                    className="w-full"
-                    data-testid="input-service-details"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
-                    Biaya Bulanan
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                    <Input
-                      type="text"
-                      id="revenue"
-                      placeholder="0"
-                      value={inputValues.monthlyRevenue}
-                      onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
-                      className="currency-input pl-8"
-                      data-testid="input-revenue"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
-                    Biaya Aktivasi
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                    <Input
-                      type="text"
-                      id="otc-cost"
-                      placeholder="0"
-                      value={inputValues.otcCost}
-                      onChange={(e) => handleInputChange('otcCost', e.target.value)}
-                      className="currency-input pl-8"
-                      data-testid="input-otc-cost"
-                    />
-                  </div>
-                </div>
-
-                {/* Row 3: Button | Total Revenue Bulanan | Total Biaya Aktivasi */}
-                <div className="flex items-end">
+              </div>
+              
+              {/* Services Section */}
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-medium text-foreground">Detail Layanan</h3>
                   <Button
                     type="button"
+                    onClick={addService}
                     variant="default"
-                    className="w-full bg-slate-800 hover:bg-slate-700 dark:bg-slate-200 dark:hover:bg-slate-300 dark:text-slate-800 text-white font-medium"
+                    size="sm"
+                    className="bg-slate-800 hover:bg-slate-700 dark:bg-slate-200 dark:hover:bg-slate-300 dark:text-slate-800 text-white font-medium"
                     data-testid="button-add-service"
                   >
                     ⊕ Tambah Layanan Lainnya
                   </Button>
                 </div>
-
-                <div>
-                  <Label className="block text-sm font-medium text-foreground mb-2">
-                    Total Revenue Bulanan
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                    <Input
-                      type="text"
-                      value={inputs.monthlyRevenue > 0 ? formatCurrency(inputs.monthlyRevenue) : formatCurrency(0)}
-                      readOnly
-                      className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
-                      data-testid="display-total-monthly-revenue"
-                    />
-                  </div>
+                
+                <div className="space-y-4">
+                  {inputs.services.map((service, index) => (
+                    <div key={service.id} className="border rounded-lg p-4 bg-white dark:bg-slate-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-medium text-sm text-foreground">
+                          Layanan {index + 1}
+                        </h4>
+                        {inputs.services.length > 1 && (
+                          <Button
+                            type="button"
+                            onClick={() => removeService(service.id)}
+                            variant="outline"
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            data-testid={`button-delete-service-${service.id}`}
+                          >
+                            🗑️ Hapus
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
+                            Jenis & Detail Layanan
+                          </Label>
+                          <Input
+                            type="text"
+                            placeholder="Contoh : Astinet 100 Mbps"
+                            value={inputValues.services.find(s => s.id === service.id)?.serviceDetails || ''}
+                            onChange={(e) => handleServiceChange(service.id, 'serviceDetails', e.target.value)}
+                            className="w-full"
+                            data-testid={`input-service-details-${service.id}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
+                            Biaya Bulanan
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                            <Input
+                              type="text"
+                              placeholder="0"
+                              value={inputValues.services.find(s => s.id === service.id)?.monthlyRevenue || ''}
+                              onChange={(e) => handleServiceChange(service.id, 'monthlyRevenue', e.target.value)}
+                              className="currency-input pl-8"
+                              data-testid={`input-monthly-revenue-${service.id}`}
+                            />
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
+                            Biaya Aktivasi
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                            <Input
+                              type="text"
+                              placeholder="0"
+                              value={inputValues.services.find(s => s.id === service.id)?.otcCost || ''}
+                              onChange={(e) => handleServiceChange(service.id, 'otcCost', e.target.value)}
+                              className="currency-input pl-8"
+                              data-testid={`input-otc-cost-${service.id}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-
-                <div>
-                  <Label className="block text-sm font-medium text-foreground mb-2">
-                    Total Biaya Aktivasi
-                  </Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                    <Input
-                      type="text"
-                      value={inputs.otcCost > 0 ? formatCurrency(inputs.otcCost) : formatCurrency(0)}
-                      readOnly
-                      className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
-                      data-testid="display-total-activation-cost"
-                    />
+              </div>
+              
+              {/* Totals Section */}
+              <div className="mt-8">
+                <h3 className="font-medium text-foreground mb-4">Total Keseluruhan</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="block text-sm font-medium text-foreground mb-2">
+                      Total Revenue Bulanan
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        value={totalMonthlyRevenue > 0 ? stripCurrencyPrefix(formatCurrency(totalMonthlyRevenue)) : stripCurrencyPrefix(formatCurrency(0))}
+                        readOnly
+                        className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
+                        data-testid="display-total-monthly-revenue"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label className="block text-sm font-medium text-foreground mb-2">
+                      Total Biaya Aktivasi
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                      <Input
+                        type="text"
+                        value={totalOtcCost > 0 ? stripCurrencyPrefix(formatCurrency(totalOtcCost)) : stripCurrencyPrefix(formatCurrency(0))}
+                        readOnly
+                        className="currency-input pl-8 bg-muted/30 text-muted-foreground cursor-not-allowed"
+                        data-testid="display-total-activation-cost"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -563,7 +688,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan: {formatCurrency(inputs.monthlyRevenue)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
+                          Bulanan: {formatCurrency(totalMonthlyRevenue)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
@@ -589,7 +714,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC Akhir: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan Akhir: {formatCurrency(inputs.monthlyRevenue)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
+                          Bulanan Akhir: {formatCurrency(totalMonthlyRevenue)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
