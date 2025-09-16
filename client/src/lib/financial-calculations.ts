@@ -1,9 +1,14 @@
+export interface ServiceEntry {
+  serviceDetails: string;
+  monthlyCost: number;
+  activationCost: number;
+}
+
 export interface FinancialInputs {
   customerName: string;
   investmentCost: number;
-  monthlyRevenue: number;
   contractPeriod: number;
-  otcCost: number;
+  services: ServiceEntry[];
 }
 
 export interface YearlyProjection {
@@ -83,7 +88,11 @@ const OPERATIONAL_RATE = 0.20; // 20%
 const CAPEX_ADDITIONAL = 0.007; // 0.70% for unexpected costs
 
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
-  const { investmentCost, monthlyRevenue, contractPeriod, otcCost } = inputs;
+  const { investmentCost, contractPeriod, services } = inputs;
+
+  // Calculate aggregated values from services
+  const monthlyRevenue = services.reduce((sum, service) => sum + service.monthlyCost, 0);
+  const otcCost = services.reduce((sum, service) => sum + service.activationCost, 0);
 
   // Basic calculations
   const otcRevenue = otcCost; // Use actual OTC cost from user input

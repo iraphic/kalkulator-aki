@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Settings } from "lucide-react";
+import { Settings, Plus, Trash2 } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
-import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults } from "@/lib/financial-calculations";
+import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults, type ServiceEntry } from "@/lib/financial-calculations";
 import { formatCurrency, formatPercentage, parseCurrency, formatInputCurrency, stripCurrencyPrefix } from "@/lib/currency-utils";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
@@ -16,19 +17,21 @@ export default function FinancialAnalysis() {
   const [inputs, setInputs] = useState<FinancialInputs>({
     customerName: "",
     investmentCost: 0,
-    monthlyRevenue: 0,
     contractPeriod: 0,
-    otcCost: 0,
+    services: [{ serviceDetails: "", monthlyCost: 0, activationCost: 0 }],
   });
 
   const [results, setResults] = useState<CalculationResults | null>(null);
   const [inputValues, setInputValues] = useState({
     customerName: "",
     investmentCost: "",
-    monthlyRevenue: "",
     contractPeriod: "",
-    otcCost: "",
+    isCustomPeriod: false,
   });
+  
+  const [serviceInputValues, setServiceInputValues] = useState([
+    { serviceDetails: "", monthlyCost: "", activationCost: "" }
+  ]);
 
 
   const handleInputChange = (field: keyof FinancialInputs, value: string) => {
@@ -39,8 +42,7 @@ export default function FinancialAnalysis() {
       setInputValues(prev => ({ ...prev, [field]: value }));
       const numValue = parseInt(value) || 0;
       setInputs(prev => ({ ...prev, [field]: numValue }));
-    } else {
-      // For currency fields, format the display value with thousands separators
+    } else if (field === 'investmentCost') {
       const formattedValue = formatInputCurrency(value);
       setInputValues(prev => ({ ...prev, [field]: formattedValue }));
       const numValue = parseCurrency(value);
@@ -48,8 +50,70 @@ export default function FinancialAnalysis() {
     }
   };
 
+  const handleServiceInputChange = (index: number, field: keyof ServiceEntry, value: string) => {
+    // Update display values
+    const newServiceInputValues = [...serviceInputValues];
+    if (field === 'serviceDetails') {
+      newServiceInputValues[index] = { ...newServiceInputValues[index], [field]: value };
+    } else {
+      // For currency fields
+      const formattedValue = formatInputCurrency(value);
+      newServiceInputValues[index] = { ...newServiceInputValues[index], [field]: formattedValue };
+    }
+    setServiceInputValues(newServiceInputValues);
+
+    // Update actual inputs
+    const newServices = [...inputs.services];
+    if (field === 'serviceDetails') {
+      newServices[index] = { ...newServices[index], [field]: value };
+    } else {
+      const numValue = parseCurrency(value);
+      newServices[index] = { ...newServices[index], [field]: numValue };
+    }
+    setInputs(prev => ({ ...prev, services: newServices }));
+  };
+
+  const addService = () => {
+    setServiceInputValues(prev => [...prev, { serviceDetails: "", monthlyCost: "", activationCost: "" }]);
+    setInputs(prev => ({ 
+      ...prev, 
+      services: [...prev.services, { serviceDetails: "", monthlyCost: 0, activationCost: 0 }]
+    }));
+  };
+
+  const removeService = (index: number) => {
+    if (inputs.services.length > 1) {
+      setServiceInputValues(prev => prev.filter((_, i) => i !== index));
+      setInputs(prev => ({ 
+        ...prev, 
+        services: prev.services.filter((_, i) => i !== index)
+      }));
+    }
+  };
+
+  const handleContractPeriodChange = (value: string) => {
+    if (value === "custom") {
+      setInputValues(prev => ({ ...prev, isCustomPeriod: true, contractPeriod: "" }));
+      setInputs(prev => ({ ...prev, contractPeriod: 0 }));
+    } else {
+      setInputValues(prev => ({ ...prev, isCustomPeriod: false, contractPeriod: value }));
+      setInputs(prev => ({ ...prev, contractPeriod: parseInt(value) }));
+    }
+  };
+
+  const calculateTotals = () => {
+    const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyCost, 0);
+    const totalActivationCost = inputs.services.reduce((sum, service) => sum + service.activationCost, 0);
+    return { totalMonthlyRevenue, totalActivationCost };
+  };
+
   const calculateAnalysis = () => {
-    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
+    const { totalMonthlyRevenue } = calculateTotals();
+    const hasValidServices = inputs.services.some(service => 
+      service.serviceDetails.trim() !== "" && (service.monthlyCost > 0 || service.activationCost > 0)
+    );
+    
+    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && hasValidServices && inputs.contractPeriod > 0) {
       const calculatedResults = calculateFinancialAnalysis(inputs);
       setResults(calculatedResults);
     }
@@ -58,16 +122,27 @@ export default function FinancialAnalysis() {
   const exportToExcel = (results: CalculationResults, inputs: FinancialInputs) => {
     const wb = XLSX.utils.book_new();
     
+    // Calculate totals from services
+    const { totalMonthlyRevenue, totalActivationCost } = calculateTotals();
+    
     // Input Summary Sheet
     const inputData = [
       ['Parameter', 'Nilai'],
       ['Nama Pelanggan', inputs.customerName],
       ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
-      ['Pendapatan per Bulan', formatCurrency(inputs.monthlyRevenue)],
       ['Periode (Bulan)', inputs.contractPeriod],
-      ['Biaya OTC', formatCurrency(inputs.otcCost)],
+      ['Total Pendapatan per Bulan', formatCurrency(totalMonthlyRevenue)],
+      ['Total Biaya Aktivasi', formatCurrency(totalActivationCost)],
       ['WACC', '15%'],
       ['Tax', '22%'],
+      ['', ''],
+      ['Rincian Layanan', ''],
+      ...inputs.services.map((service, index) => [
+        `Layanan ${index + 1}`, 
+        service.serviceDetails,
+        `Bulanan: ${formatCurrency(service.monthlyCost)}`,
+        `Aktivasi: ${formatCurrency(service.activationCost)}`
+      ]),
       ['', ''],
       ['Hasil Perhitungan', ''],
       ['Total Revenue', formatCurrency(results.totalRevenue)],
@@ -239,9 +314,7 @@ export default function FinancialAnalysis() {
 
 
   useEffect(() => {
-    if (inputs.customerName.trim() !== "" && inputs.investmentCost > 0 && inputs.monthlyRevenue > 0 && inputs.contractPeriod > 0 && inputs.otcCost >= 0) {
-      calculateAnalysis();
-    }
+    calculateAnalysis();
   }, [inputs]);
 
   return (
@@ -332,98 +405,185 @@ export default function FinancialAnalysis() {
             <div>
               <h3 className="font-medium text-foreground mb-4">Input Variabel</h3>
               
-              {/* First grid: Customer Name + OTC Cost */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
-                  {/* Customer Name - Takes more space */}
-                  <div className="sm:col-span-2 lg:col-span-3">
-                    <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
-                      Nama Pelanggan
-                    </Label>
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                {/* Customer Name */}
+                <div>
+                  <Label htmlFor="customer-name" className="block text-sm font-medium text-foreground mb-2">
+                    Nama Pelanggan
+                  </Label>
+                  <Input
+                    type="text"
+                    id="customer-name"
+                    placeholder="Masukkan nama pelanggan"
+                    value={inputValues.customerName}
+                    onChange={(e) => handleInputChange('customerName', e.target.value)}
+                    className="w-full"
+                    data-testid="input-customer-name"
+                  />
+                </div>
+
+                {/* Investment Cost */}
+                <div>
+                  <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
+                    Total BOQ Biaya Investasi
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
                     <Input
                       type="text"
-                      id="customer-name"
-                      placeholder="Masukkan nama pelanggan"
-                      value={inputValues.customerName}
-                      onChange={(e) => handleInputChange('customerName', e.target.value)}
-                      className="w-full"
-                      data-testid="input-customer-name"
+                      id="investment"
+                      placeholder="0"
+                      value={inputValues.investmentCost}
+                      onChange={(e) => handleInputChange('investmentCost', e.target.value)}
+                      className="currency-input pl-8"
+                      data-testid="input-investment"
                     />
                   </div>
+                </div>
 
-                  {/* OTC Cost - Takes less space */}
-                  <div className="sm:col-span-1 lg:col-span-1">
-                    <Label htmlFor="otc-cost" className="block text-sm font-medium text-foreground mb-2">
-                      Biaya OTC
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                {/* Contract Period */}
+                <div>
+                  <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
+                    Periode Kontrak
+                  </Label>
+                  <div className="space-y-2">
+                    <Select value={inputValues.isCustomPeriod ? "custom" : inputValues.contractPeriod} onValueChange={handleContractPeriodChange}>
+                      <SelectTrigger data-testid="select-contract-period">
+                        <SelectValue placeholder="Pilih periode kontrak" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="12">12 Bulan</SelectItem>
+                        <SelectItem value="24">24 Bulan</SelectItem>
+                        <SelectItem value="48">48 Bulan</SelectItem>
+                        <SelectItem value="custom">Custom</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {inputValues.isCustomPeriod && (
                       <Input
-                        type="text"
-                        id="otc-cost"
-                        placeholder="0"
-                        value={inputValues.otcCost}
-                        onChange={(e) => handleInputChange('otcCost', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-otc-cost"
+                        type="number"
+                        placeholder="Masukkan periode (bulan)"
+                        value={inputValues.contractPeriod}
+                        onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
+                        data-testid="input-custom-period"
                       />
-                    </div>
+                    )}
                   </div>
+                </div>
               </div>
 
-              {/* Second grid: Investment Cost, Monthly Revenue, Contract Period */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Investment Cost */}
-                  <div>
-                    <Label htmlFor="investment" className="block text-sm font-medium text-foreground mb-2">
-                      Biaya Investasi (BOQ)
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="investment"
-                        placeholder="0"
-                        value={inputValues.investmentCost}
-                        onChange={(e) => handleInputChange('investmentCost', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-investment"
-                      />
-                    </div>
-                  </div>
+              {/* Services Section */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-medium text-foreground">Detail Layanan</h4>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addService}
+                    className="flex items-center gap-2"
+                    data-testid="button-add-service"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Tambah Layanan Lainnya
+                  </Button>
+                </div>
 
-                  {/* Monthly Revenue */}
-                  <div>
-                    <Label htmlFor="revenue" className="block text-sm font-medium text-foreground mb-2">
-                      Pendapatan per Bulan
-                    </Label>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
-                      <Input
-                        type="text"
-                        id="revenue"
-                        placeholder="0"
-                        value={inputValues.monthlyRevenue}
-                        onChange={(e) => handleInputChange('monthlyRevenue', e.target.value)}
-                        className="currency-input pl-8"
-                        data-testid="input-revenue"
-                      />
-                    </div>
-                  </div>
+                <div className="space-y-4">
+                  {inputs.services.map((service, index) => (
+                    <div key={index} className="border border-border rounded-md p-4 bg-card">
+                      <div className="flex items-start justify-between mb-4">
+                        <h5 className="font-medium text-sm text-foreground">Layanan {index + 1}</h5>
+                        {inputs.services.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => removeService(index)}
+                            className="text-destructive hover:text-destructive"
+                            data-testid={`button-remove-service-${index}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
 
-                  {/* Contract Period */}
-                  <div>
-                    <Label htmlFor="period" className="block text-sm font-medium text-foreground mb-2">
-                      Periode Kontrak (Bulan)
-                    </Label>
-                    <Input
-                      type="number"
-                      id="period"
-                      placeholder="0"
-                      value={inputValues.contractPeriod}
-                      onChange={(e) => handleInputChange('contractPeriod', e.target.value)}
-                      data-testid="input-period"
-                    />
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        {/* Service Details */}
+                        <div>
+                          <Label htmlFor={`service-details-${index}`} className="block text-sm font-medium text-foreground mb-2">
+                            Jenis & Detail Layanan
+                          </Label>
+                          <Input
+                            type="text"
+                            id={`service-details-${index}`}
+                            placeholder="Contoh: Internet Dedicated 10 Mbps"
+                            value={serviceInputValues[index]?.serviceDetails || ""}
+                            onChange={(e) => handleServiceInputChange(index, 'serviceDetails', e.target.value)}
+                            data-testid={`input-service-details-${index}`}
+                          />
+                        </div>
+
+                        {/* Monthly Cost */}
+                        <div>
+                          <Label htmlFor={`monthly-cost-${index}`} className="block text-sm font-medium text-foreground mb-2">
+                            Biaya Bulanan
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                            <Input
+                              type="text"
+                              id={`monthly-cost-${index}`}
+                              placeholder="0"
+                              value={serviceInputValues[index]?.monthlyCost || ""}
+                              onChange={(e) => handleServiceInputChange(index, 'monthlyCost', e.target.value)}
+                              className="currency-input pl-8"
+                              data-testid={`input-monthly-cost-${index}`}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Activation Cost */}
+                        <div>
+                          <Label htmlFor={`activation-cost-${index}`} className="block text-sm font-medium text-foreground mb-2">
+                            Biaya Aktivasi
+                          </Label>
+                          <div className="relative">
+                            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm font-medium">Rp</span>
+                            <Input
+                              type="text"
+                              id={`activation-cost-${index}`}
+                              placeholder="0"
+                              value={serviceInputValues[index]?.activationCost || ""}
+                              onChange={(e) => handleServiceInputChange(index, 'activationCost', e.target.value)}
+                              className="currency-input pl-8"
+                              data-testid={`input-activation-cost-${index}`}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Auto-calculated Totals */}
+              <div className="bg-accent p-4 rounded-md">
+                <h4 className="font-medium text-foreground mb-3">Total Otomatis</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex justify-between items-center py-2 border-b border-border/50">
+                    <span className="text-sm text-muted-foreground">Total Revenue Bulanan</span>
+                    <span className="font-medium" data-testid="total-monthly-revenue">
+                      {formatCurrency(calculateTotals().totalMonthlyRevenue)}
+                    </span>
                   </div>
+                  <div className="flex justify-between items-center py-2 border-b border-border/50">
+                    <span className="text-sm text-muted-foreground">Total Biaya Aktivasi</span>
+                    <span className="font-medium" data-testid="total-activation-cost">
+                      {formatCurrency(calculateTotals().totalActivationCost)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -467,7 +627,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan: {formatCurrency(inputs.monthlyRevenue)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
+                          Bulanan: {formatCurrency(calculateTotals().totalMonthlyRevenue)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
@@ -493,7 +653,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC Akhir: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan Akhir: {formatCurrency(inputs.monthlyRevenue)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
+                          Bulanan Akhir: {formatCurrency(calculateTotals().totalMonthlyRevenue)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
