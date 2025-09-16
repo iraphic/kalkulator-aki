@@ -207,16 +207,23 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     });
   }
 
-  // Update yearly projections with calculated OPEX values
+  // Update yearly projections with calculated OPEX and COGS values
   for (let i = 0; i < yearlyProjections.length; i++) {
     const opexValue = opexProjections[i].totalOpex;
+    const cogsValue = cogsProjections[i].totalCogs;
+    
     yearlyProjections[i].opex = opexValue;
-    // Recalculate EBITDA with the correct OPEX
-    yearlyProjections[i].ebitda = yearlyProjections[i].revenue - yearlyProjections[i].badDebt - opexValue;
+    
+    // Calculate EBITDA correctly: Revenue - BadDebt - COGS - OPEX
+    // This follows the standard P&L format: Revenue → Gross Profit (after COGS) → EBITDA (after OPEX)
+    yearlyProjections[i].ebitda = yearlyProjections[i].revenue - yearlyProjections[i].badDebt - cogsValue - opexValue;
+    
     // Recalculate EBIT
     yearlyProjections[i].ebit = yearlyProjections[i].ebitda - yearlyProjections[i].depreciation;
+    
     // Recalculate tax - only apply tax if EBIT is positive
     yearlyProjections[i].tax = yearlyProjections[i].ebit > 0 ? yearlyProjections[i].ebit * TAX_RATE : 0;
+    
     // Recalculate net income
     yearlyProjections[i].netIncome = yearlyProjections[i].ebit - yearlyProjections[i].tax;
   }
