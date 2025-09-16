@@ -1,14 +1,9 @@
-export interface ServiceEntry {
-  serviceDetails: string;
-  monthlyCost: number;
-  activationCost: number;
-}
-
 export interface FinancialInputs {
   customerName: string;
   investmentCost: number;
+  monthlyRevenue: number;
   contractPeriod: number;
-  services: ServiceEntry[];
+  otcCost: number;
 }
 
 export interface YearlyProjection {
@@ -88,11 +83,7 @@ const OPERATIONAL_RATE = 0.20; // 20%
 const CAPEX_ADDITIONAL = 0.007; // 0.70% for unexpected costs
 
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
-  const { investmentCost, contractPeriod, services } = inputs;
-
-  // Calculate aggregated values from services
-  const monthlyRevenue = services.reduce((sum, service) => sum + service.monthlyCost, 0);
-  const otcCost = services.reduce((sum, service) => sum + service.activationCost, 0);
+  const { investmentCost, monthlyRevenue, contractPeriod, otcCost } = inputs;
 
   // Basic calculations
   const otcRevenue = otcCost; // Use actual OTC cost from user input
@@ -207,25 +198,18 @@ export function calculateFinancialAnalysis(inputs: FinancialInputs): Calculation
     });
   }
 
-  // Update yearly projections with calculated OPEX and COGS values
+  // Update yearly projections with calculated OPEX values
   for (let i = 0; i < yearlyProjections.length; i++) {
     const opexValue = opexProjections[i].totalOpex;
-    const cogsValue = cogsProjections[i].totalCogs;
-    
     yearlyProjections[i].opex = opexValue;
-    
-    // Calculate EBITDA correctly: Revenue - BadDebt - COGS - OPEX
-    // This follows the standard P&L format: Revenue → Gross Profit (after COGS) → EBITDA (after OPEX)
-    yearlyProjections[i].ebitda = yearlyProjections[i].revenue - yearlyProjections[i].badDebt - cogsValue - opexValue;
-    
+    // Recalculate EBITDA with the correct OPEX
+    yearlyProjections[i].ebitda = yearlyProjections[i].revenue - yearlyProjections[i].badDebt - opexValue;
     // Recalculate EBIT
     yearlyProjections[i].ebit = yearlyProjections[i].ebitda - yearlyProjections[i].depreciation;
-    
     // Recalculate tax - only apply tax if EBIT is positive
     yearlyProjections[i].tax = yearlyProjections[i].ebit > 0 ? yearlyProjections[i].ebit * TAX_RATE : 0;
-    
-    // Calculate Net Income using new formula: Total Revenue − COGS − Depreciation − (OPEX + Tax)
-    yearlyProjections[i].netIncome = yearlyProjections[i].revenue - cogsValue - yearlyProjections[i].depreciation - opexValue - yearlyProjections[i].tax;
+    // Recalculate net income
+    yearlyProjections[i].netIncome = yearlyProjections[i].ebit - yearlyProjections[i].tax;
   }
 
   // Calculate totals from projections

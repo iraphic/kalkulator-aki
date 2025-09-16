@@ -1,5 +1,5 @@
 {
-  "name": "kalkulator-aki",
+  "name": "rest-express",
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
@@ -106,20 +106,5 @@
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
-  },
-  "description": "penghitung aki",
-  "main": "postcss.config.js",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/iraphic/kalkulator-aki.git"
-  },
-  "keywords": [
-    "kalkulator",
-    "aki"
-  ],
-  "author": "iraphic",
-  "bugs": {
-    "url": "https://github.com/iraphic/kalkulator-aki/issues"
-  },
-  "homepage": "https://github.com/iraphic/kalkulator-aki#readme"
+  }
 }
