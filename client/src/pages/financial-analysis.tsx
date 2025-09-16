@@ -580,13 +580,13 @@ export default function FinancialAnalysis() {
                   <div className="flex justify-between items-center py-2 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">Total Revenue Bulanan</span>
                     <span className="font-medium" data-testid="total-monthly-revenue">
-                      {formatCurrency(calculateTotals().totalMonthlyRevenue)}
+                      {results ? formatCurrency(results.monthlyTotal / inputs.contractPeriod) : formatCurrency(0)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-border/50">
                     <span className="text-sm text-muted-foreground">Total Biaya Aktivasi</span>
                     <span className="font-medium" data-testid="total-activation-cost">
-                      {formatCurrency(calculateTotals().totalActivationCost)}
+                      {results ? formatCurrency(results.otcRevenue) : formatCurrency(0)}
                     </span>
                   </div>
                 </div>
@@ -633,7 +633,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan: {formatCurrency(calculateTotals().totalMonthlyRevenue)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
+                          Bulanan: {formatCurrency(results.monthlyTotal / inputs.contractPeriod)} x {inputs.contractPeriod} bulan = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
@@ -659,7 +659,7 @@ export default function FinancialAnalysis() {
                         </div>
                         <div className="text-sm text-muted-foreground">OTC Akhir: {formatCurrency(results.otcRevenue)}</div>
                         <div className="text-sm text-muted-foreground">
-                          Bulanan Akhir: {formatCurrency(calculateTotals().totalMonthlyRevenue)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
+                          Bulanan Akhir: {formatCurrency(results.monthlyTotal / inputs.contractPeriod)} x {inputs.contractPeriod} = {formatCurrency(results.monthlyTotal)}
                         </div>
                       </div>
                     </div>
