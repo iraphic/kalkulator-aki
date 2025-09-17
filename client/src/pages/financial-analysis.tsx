@@ -159,36 +159,80 @@ export default function FinancialAnalysis() {
   const exportToExcel = (results: CalculationResults, inputs: FinancialInputs) => {
     const wb = XLSX.utils.book_new();
     
-    // Input Summary Sheet
+    // Calculate totals for services
     const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
     const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
     
+    // Detail Layanan Sheet (New comprehensive service details sheet)
+    const serviceDetailsData = [
+      ['Detail Layanan - Input Komponen Layanan'],
+      [''],
+      ['No.', 'Jenis & Detail Layanan', 'Biaya Bulanan', 'Biaya Aktivasi (OTC)', 'Subtotal Bulanan', 'Subtotal OTC'],
+      ...inputs.services.map((service, index) => [
+        index + 1,
+        service.serviceDetails || `Layanan ${index + 1}`,
+        formatCurrency(service.monthlyRevenue),
+        formatCurrency(service.otcCost),
+        formatCurrency(service.monthlyRevenue),
+        formatCurrency(service.otcCost)
+      ]),
+      [''],
+      ['RINGKASAN TOTAL'],
+      ['Total Layanan', inputs.services.length, '', '', '', ''],
+      ['Total Biaya Bulanan', '', formatCurrency(totalMonthlyRevenue), '', formatCurrency(totalMonthlyRevenue), ''],
+      ['Total Biaya Aktivasi (OTC)', '', '', formatCurrency(totalOtcCost), '', formatCurrency(totalOtcCost)],
+      [''],
+      ['KETERANGAN:'],
+      ['• Biaya Bulanan: Pendapatan recurring per bulan dari layanan'],
+      ['• Biaya Aktivasi (OTC): One Time Cost untuk aktivasi layanan'],
+      ['• Subtotal: Kontribusi masing-masing layanan terhadap total pendapatan'],
+      [''],
+      ['PARAMETER PERHITUNGAN:'],
+      ['• Periode Kontrak:', `${inputs.contractPeriod} bulan`],
+      ['• Total Revenue (Lifetime):', formatCurrency(results.totalRevenue)],
+      ['• OTC Revenue:', formatCurrency(results.otcRevenue)],
+      ['• Monthly Revenue Total:', formatCurrency(results.monthlyTotal)]
+    ];
+    
+    const wsServiceDetails = XLSX.utils.aoa_to_sheet(serviceDetailsData);
+    XLSX.utils.book_append_sheet(wb, wsServiceDetails, 'Detail Layanan');
+    
+    // Input Summary Sheet (Improved and cleaner version)
     const inputData = [
+      ['PARAMETER INPUT UTAMA'],
+      [''],
       ['Parameter', 'Nilai'],
       ['Nama Pelanggan', inputs.customerName],
       ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
+      ['Periode Kontrak (Bulan)', inputs.contractPeriod],
+      [''],
+      ['RINGKASAN LAYANAN'],
+      ['Jumlah Layanan', inputs.services.length],
       ['Total Pendapatan per Bulan', formatCurrency(totalMonthlyRevenue)],
-      ['Periode (Bulan)', inputs.contractPeriod],
-      ['Total Biaya OTC', formatCurrency(totalOtcCost)],
-      ['', ''],
-      ['Layanan Detail', ''],
-      ...inputs.services.map((service, index) => [
-        `Layanan ${index + 1}: ${service.serviceDetails}`,
-        `Monthly: ${formatCurrency(service.monthlyRevenue)}, OTC: ${formatCurrency(service.otcCost)}`
-      ]),
-      ['WACC', '15%'],
-      ['Tax', '22%'],
-      ['', ''],
-      ['Hasil Perhitungan', ''],
-      ['Total Revenue', formatCurrency(results.totalRevenue)],
+      ['Total Biaya Aktivasi (OTC)', formatCurrency(totalOtcCost)],
+      [''],
+      ['PARAMETER TETAP PERHITUNGAN'],
+      ['WACC (Discount Rate)', '15%'],
+      ['Tax Rate', '22%'],
+      ['COGS Margin', '70%'],
+      ['Bad Debt Rate', '5%'],
+      ['Depreciation Period', '5 Tahun'],
+      ['Marketing Cost Rate', '30%'],
+      ['Operational Cost Rate', '20%'],
+      [''],
+      ['HASIL PERHITUNGAN UTAMA'],
+      ['Total Revenue (Lifetime)', formatCurrency(results.totalRevenue)],
       ['OTC Revenue', formatCurrency(results.otcRevenue)],
-      ['Monthly Total', formatCurrency(results.monthlyTotal)],
+      ['Monthly Revenue Total', formatCurrency(results.monthlyTotal)],
       ['Cost IBL', formatCurrency(results.costIBL)],
       ['Cost OBL', formatCurrency(results.costOBL)],
       ['Total OPEX', formatCurrency(results.totalOpex)],
+      [''],
+      ['ANALISIS KELAYAKAN'],
       ['NPV', formatCurrency(results.npv)],
       ['IRR', formatPercentage(results.irr)],
-      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`]
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`],
+      ['Status Kelayakan', results.isViable ? 'LAYAK' : 'TIDAK LAYAK']
     ];
     
     const wsInput = XLSX.utils.aoa_to_sheet(inputData);
