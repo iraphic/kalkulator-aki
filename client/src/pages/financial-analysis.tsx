@@ -163,7 +163,7 @@ export default function FinancialAnalysis() {
     const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
     const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
     
-    // Detail Layanan Sheet (New comprehensive service details sheet)
+    // ===== SHEET 1: Detail Layanan (keep as is) =====
     const serviceDetailsData = [
       ['Detail Layanan - Input Komponen Layanan'],
       [''],
@@ -197,21 +197,24 @@ export default function FinancialAnalysis() {
     const wsServiceDetails = XLSX.utils.aoa_to_sheet(serviceDetailsData);
     XLSX.utils.book_append_sheet(wb, wsServiceDetails, 'Detail Layanan');
     
-    // Input Summary Sheet (Improved and cleaner version)
-    const inputData = [
-      ['PARAMETER INPUT UTAMA'],
+    // ===== SHEET 2: COGS+Opex+Ringkasan Analisis (combined sheet) =====
+    const cogsOpexAnalysisData = [
+      ['COGS+OPEX+RINGKASAN ANALISIS'],
       [''],
+      
+      // Parameter Input Section
+      ['=== PARAMETER INPUT UTAMA ==='],
       ['Parameter', 'Nilai'],
       ['Nama Pelanggan', inputs.customerName],
       ['Biaya Investasi (BOQ)', formatCurrency(inputs.investmentCost)],
       ['Periode Kontrak (Bulan)', inputs.contractPeriod],
-      [''],
-      ['RINGKASAN LAYANAN'],
       ['Jumlah Layanan', inputs.services.length],
       ['Total Pendapatan per Bulan', formatCurrency(totalMonthlyRevenue)],
       ['Total Biaya Aktivasi (OTC)', formatCurrency(totalOtcCost)],
       [''],
-      ['PARAMETER TETAP PERHITUNGAN'],
+      
+      // Fixed Parameters Section
+      ['=== PARAMETER TETAP PERHITUNGAN ==='],
       ['WACC (Discount Rate)', '15%'],
       ['Tax Rate', '22%'],
       ['COGS Margin', '70%'],
@@ -220,49 +223,47 @@ export default function FinancialAnalysis() {
       ['Marketing Cost Rate', '30%'],
       ['Operational Cost Rate', '20%'],
       [''],
-      ['HASIL PERHITUNGAN UTAMA'],
+      
+      // COGS Projection Section
+      ['=== PROYEKSI COGS ==='],
+      ['Label', 'Total', ...results.cogsProjections.map((_, i) => `Tahun ke-${i}`)],
+      ['COGS OTC', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.otcCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.otcCogs))],
+      ['COGS Bulanan', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.monthlyCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.monthlyCogs))],
+      ['Total COGS', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.totalCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.totalCogs))],
+      [''],
+      
+      // OPEX Projection Section
+      ['=== PROYEKSI OPEX ==='],
+      ['Label', 'Total', ...results.opexProjections.map((_, i) => `Tahun ke-${i}`)],
+      ['Marketing Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.marketingCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.marketingCost))],
+      ['Operational Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.operationalCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.operationalCost))],
+      ['Total OPEX', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.totalOpex, 0)), ...results.opexProjections.map(p => formatCurrency(p.totalOpex))],
+      [''],
+      
+      // Key Summary Metrics Section
+      ['=== RINGKASAN UTAMA HASIL PERHITUNGAN ==='],
+      ['Metric', 'Nilai'],
       ['Total Revenue (Lifetime)', formatCurrency(results.totalRevenue)],
       ['OTC Revenue', formatCurrency(results.otcRevenue)],
       ['Monthly Revenue Total', formatCurrency(results.monthlyTotal)],
       ['Cost IBL', formatCurrency(results.costIBL)],
       ['Cost OBL', formatCurrency(results.costOBL)],
+      ['Total COGS', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.totalCogs, 0))],
       ['Total OPEX', formatCurrency(results.totalOpex)],
       [''],
-      ['ANALISIS KELAYAKAN'],
+      
+      // Quick Analysis Summary
+      ['=== RINGKASAN ANALISIS KELAYAKAN ==='],
       ['NPV', formatCurrency(results.npv)],
       ['IRR', formatPercentage(results.irr)],
       ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`],
       ['Status Kelayakan', results.isViable ? 'LAYAK' : 'TIDAK LAYAK']
     ];
     
-    const wsInput = XLSX.utils.aoa_to_sheet(inputData);
-    XLSX.utils.book_append_sheet(wb, wsInput, 'Input & Summary');
+    const wsCogsOpexAnalysis = XLSX.utils.aoa_to_sheet(cogsOpexAnalysisData);
+    XLSX.utils.book_append_sheet(wb, wsCogsOpexAnalysis, 'COGS+Opex+Ringkasan Analisis');
     
-    // COGS Sheet (matching CogsTable)
-    const cogsHeaders = ['Label', 'Jumlah', ...results.cogsProjections.map((_, i) => `Tahun ke-${i}`)];
-    const cogsData = [
-      cogsHeaders,
-      ['COGS OTC', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.otcCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.otcCogs))],
-      ['COGS Bulanan', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.monthlyCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.monthlyCogs))],
-      ['Total COGS', formatCurrency(results.cogsProjections.reduce((sum, p) => sum + p.totalCogs, 0)), ...results.cogsProjections.map(p => formatCurrency(p.totalCogs))]
-    ];
-    
-    const wsCogs = XLSX.utils.aoa_to_sheet(cogsData);
-    XLSX.utils.book_append_sheet(wb, wsCogs, 'COGS');
-    
-    // OPEX Breakdown Sheet (matching OpexTable)
-    const opexHeaders = ['Label', 'Jumlah', ...results.opexProjections.map((_, i) => `Tahun ke-${i}`)];
-    const opexData = [
-      opexHeaders,
-      ['Marketing Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.marketingCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.marketingCost))],
-      ['Operational Cost', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.operationalCost, 0)), ...results.opexProjections.map(p => formatCurrency(p.operationalCost))],
-      ['Total OPEX', formatCurrency(results.opexProjections.reduce((sum, p) => sum + p.totalOpex, 0)), ...results.opexProjections.map(p => formatCurrency(p.totalOpex))]
-    ];
-    
-    const wsOpex = XLSX.utils.aoa_to_sheet(opexData);
-    XLSX.utils.book_append_sheet(wb, wsOpex, 'OPEX Breakdown');
-    
-    // Revenue & P&L Summary Sheet (matching PLSummaryTable)
+    // ===== SHEET 3: Revenue & P&L Summary (keep as is) =====
     const plSummaryHeaders = ['Metrics', 'Total', ...results.yearlyProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
     
     // Calculate totals excluding year 0 to match web interface columns
@@ -298,9 +299,9 @@ export default function FinancialAnalysis() {
     ];
     
     const wsPLSummary = XLSX.utils.aoa_to_sheet(plSummaryData);
-    XLSX.utils.book_append_sheet(wb, wsPLSummary, 'Revenue & PL Summary');
+    XLSX.utils.book_append_sheet(wb, wsPLSummary, 'Revenue & P&L Summary');
     
-    // Cash Flow Summary Sheet (matching CashFlowSummaryTable)
+    // ===== SHEET 4: Cash Flow Summary (keep as is) =====
     const calculatePVOfFCF = (fcf: number, year: number, discountRate: number = 0.15) => {
       if (year === 0) return fcf;
       return fcf / Math.pow(1 + discountRate, year);
@@ -326,65 +327,65 @@ export default function FinancialAnalysis() {
     const wsCFSummary = XLSX.utils.aoa_to_sheet(cfSummaryData);
     XLSX.utils.book_append_sheet(wb, wsCFSummary, 'Cash Flow Summary');
     
-    // Detailed Profit & Loss Sheet (matching ProfitLossTable)
-    const plHeaders = ['Label', 'Jumlah', ...results.yearlyProjections.map((_, i) => `Tahun ke-${i}`)];
-    const plData = [
-      plHeaders,
-      ['Revenue', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.revenue, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.revenue))],
-      ['Bad Debt', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.badDebt, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.badDebt))],
-      ['OPEX', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.opex, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.opex))],
-      ['EBITDA', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebitda, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebitda))],
-      ['Depresiasi', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.depreciation, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.depreciation))],
-      ['EBIT', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.ebit, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.ebit))],
-      ['Pajak', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.tax, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.tax))],
-      ['Net Income', formatCurrency(results.yearlyProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.yearlyProjections.map(p => formatCurrency(p.netIncome))]
-    ];
-    
-    const wsPL = XLSX.utils.aoa_to_sheet(plData);
-    XLSX.utils.book_append_sheet(wb, wsPL, 'Detailed PL');
-    
-    // Detailed Cash Flow Sheet (matching CashFlowTable)
-    const cfHeaders = ['Label', 'Jumlah', ...results.cashFlowProjections.map((_, i) => `Tahun ke-${i}`)];
-    const cfData = [
-      cfHeaders,
-      ['Net Income', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netIncome, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netIncome))],
-      ['Add Back Depresiasi', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.addBackDepreciation, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.addBackDepreciation))],
-      ['TOTAL CASH INFLOW', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.totalCashInflow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.totalCashInflow))],
-      ['CAPEX', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.capex, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.capex))],
-      ['Net Cash Flow', formatCurrency(results.cashFlowProjections.reduce((sum, p) => sum + p.netCashFlow, 0)), ...results.cashFlowProjections.map(p => formatCurrency(p.netCashFlow))],
-      ['Cum Cash Flow', formatCurrency(results.cashFlowProjections.length > 0 ? results.cashFlowProjections[results.cashFlowProjections.length - 1].cumulativeCashFlow : 0), ...results.cashFlowProjections.map(p => formatCurrency(p.cumulativeCashFlow))]
-    ];
-    
-    const wsCF = XLSX.utils.aoa_to_sheet(cfData);
-    XLSX.utils.book_append_sheet(wb, wsCF, 'Detailed Cash Flow');
-    
-    // NPV Analysis Sheet (matching NPVAnalysisTable)
-    const npvAnalysisHeaders = ['Analisis Kelayakan', 'Nilai', ...results.cashFlowProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
-    const npvAnalysisData = [
-      npvAnalysisHeaders,
-      ['NPV', formatCurrency(results.npv), ...results.cashFlowProjections.slice(1).map(() => '-')],
-      ['IRR', formatPercentage(results.irr), ...results.cashFlowProjections.slice(1).map(() => '-')],
-      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, ...results.cashFlowProjections.slice(1).map(() => '-')]
-    ];
-    
-    const wsNPVAnalysis = XLSX.utils.aoa_to_sheet(npvAnalysisData);
-    XLSX.utils.book_append_sheet(wb, wsNPVAnalysis, 'NPV Analysis');
-    
-    // Feasibility Analysis Sheet (matching FeasibilityAnalysisTable)
+    // ===== SHEET 5: Analisis NPV, IRR, Payback & Feasibility (combined sheet) =====
     const npvStatus = results.npv > 0 ? 'Layak' : 'Tidak Layak';
     const irrStatus = results.irr >= 0.15 ? 'Layak' : 'Tidak Layak';
     
-    const feasibilityData = [
-      ['Metrics', 'Value', 'Status'],
-      ['NPV', formatCurrency(results.npv), npvStatus],
-      ['IRR', formatPercentage(results.irr), irrStatus],
-      ['', '', ''],
-      ['Kesimpulan', '', ''],
-      ['Kelayakan Investasi', results.isViable ? 'LAYAK' : 'TIDAK LAYAK', results.isViable ? 'Investasi direkomendasikan' : 'Investasi tidak direkomendasikan']
+    const npvFeasibilityData = [
+      ['ANALISIS NPV, IRR, PAYBACK & FEASIBILITY'],
+      [''],
+      
+      // NPV Analysis Section
+      ['=== ANALISIS NPV, IRR & PAYBACK PERIOD ==='],
+      ['Analisis Kelayakan', 'Nilai', 'Kriteria', 'Status', ...results.cashFlowProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)],
+      ['NPV', formatCurrency(results.npv), '> 0', npvStatus, ...results.cashFlowProjections.slice(1).map(() => '-')],
+      ['IRR', formatPercentage(results.irr), '>= 15%', irrStatus, ...results.cashFlowProjections.slice(1).map(() => '-')],
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, 'Semakin Pendek Semakin Baik', '-', ...results.cashFlowProjections.slice(1).map(() => '-')],
+      [''],
+      
+      // Investment Cash Flow Breakdown for Analysis
+      ['=== BREAKDOWN CASH FLOW UNTUK ANALISIS ==='],
+      ['Tahun', 'Net Cash Flow', 'Cumulative Cash Flow', 'PV Factor (15%)', 'Present Value'],
+      ['0', formatCurrency(-inputs.investmentCost), formatCurrency(-inputs.investmentCost), '1.000', formatCurrency(-inputs.investmentCost)],
+      ...results.cashFlowProjections.slice(1).map((cf, index) => {
+        const year = index + 1;
+        const pvFactor = 1 / Math.pow(1.15, year);
+        const presentValue = cf.netCashFlow * pvFactor;
+        return [
+          year.toString(),
+          formatCurrency(cf.netCashFlow),
+          formatCurrency(cf.cumulativeCashFlow),
+          pvFactor.toFixed(3),
+          formatCurrency(presentValue)
+        ];
+      }),
+      [''],
+      
+      // Feasibility Analysis Section
+      ['=== ANALISIS KELAYAKAN INVESTASI ==='],
+      ['Metrics', 'Value', 'Threshold', 'Status', 'Keterangan'],
+      ['NPV', formatCurrency(results.npv), '> Rp 0', npvStatus, npvStatus === 'Layak' ? 'Investasi menghasilkan nilai positif' : 'Investasi tidak menghasilkan nilai positif'],
+      ['IRR', formatPercentage(results.irr), '>= 15%', irrStatus, irrStatus === 'Layak' ? 'Return melebihi cost of capital' : 'Return di bawah cost of capital'],
+      ['Payback Period', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, 'Reasonable Period', '-', 'Waktu pengembalian modal investasi'],
+      [''],
+      
+      // Investment Recommendation
+      ['=== REKOMENDASI INVESTASI ==='],
+      ['Aspek Penilaian', 'Hasil', 'Interpretasi'],
+      ['Profitabilitas (NPV)', results.npv > 0 ? 'POSITIF' : 'NEGATIF', results.npv > 0 ? 'Investasi menguntungkan' : 'Investasi merugikan'],
+      ['Efisiensi Return (IRR)', results.irr >= 0.15 ? 'MEMADAI' : 'TIDAK MEMADAI', results.irr >= 0.15 ? 'Return sesuai ekspektasi' : 'Return di bawah ekspektasi'],
+      ['Risiko Waktu (Payback)', `${results.paybackPeriod.years} tahun ${results.paybackPeriod.months} bulan`, 'Waktu pengembalian investasi'],
+      [''],
+      ['KESIMPULAN AKHIR', '', ''],
+      ['Status Kelayakan', results.isViable ? 'LAYAK' : 'TIDAK LAYAK', results.isViable ? 'Investasi direkomendasikan untuk dilaksanakan' : 'Investasi tidak direkomendasikan'],
+      ['Tingkat Kepercayaan', results.npv > 0 && results.irr >= 0.15 ? 'TINGGI' : results.npv > 0 || results.irr >= 0.15 ? 'SEDANG' : 'RENDAH', 'Berdasarkan konsistensi indikator kelayakan'],
+      ['Rekomendasi Tindakan', 
+        results.isViable ? 'PROCEED' : 'REVIEW/REJECT', 
+        results.isViable ? 'Lanjutkan ke tahap implementasi' : 'Tinjau ulang parameter atau tolak investasi']
     ];
     
-    const wsFeasibility = XLSX.utils.aoa_to_sheet(feasibilityData);
-    XLSX.utils.book_append_sheet(wb, wsFeasibility, 'Feasibility Analysis');
+    const wsNPVFeasibility = XLSX.utils.aoa_to_sheet(npvFeasibilityData);
+    XLSX.utils.book_append_sheet(wb, wsNPVFeasibility, 'Analisis NPV, IRR, Payback & Feasibility');
     
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
