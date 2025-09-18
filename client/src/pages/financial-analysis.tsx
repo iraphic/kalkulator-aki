@@ -163,7 +163,70 @@ export default function FinancialAnalysis() {
     const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
     const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
     
-    // ===== SHEET 1: Detail Layanan (keep as is) =====
+    // Get current date for the cover sheet
+    const currentDate = new Date().toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+    
+    // Determine feasibility status for cover sheet
+    const coverIrrStatus = results.irr >= 15 ? 'Feasible' : 'Not Feasible';
+    const coverNpvStatus = results.npv > 0 ? 'Feasible' : 'Not Feasible';
+    const recommendation = results.isViable ? 'Layak untuk diimplementasikan' : 'Tidak layak untuk diimplementasikan';
+    
+    // ===== SHEET 1: BUSINESS PLAN COVER SHEET =====
+    const coverSheetData = [
+      ['BUSINESS PLAN'],
+      ['PT ...'],
+      [''],
+      ['C.TEL.1111/YN 000/R2W-C0100000/2025'],
+      ['BO. 001/CAPEX BOARO/ AGUSTUS / 2025'],
+      [''],
+      [''],
+      ['Nama/NIK', 'Jabatan', 'Tanggal', 'Tanda Tangan'],
+      ['Dibuat Oleh', inputs.customerName, currentDate, ''],
+      ['Diperiksa Oleh', 'Manager Vital Business Services/atara/Generilam', currentDate, ''],
+      ['Disetujui Oleh', 'SMF RSO 1 TREG 2', currentDate, ''],
+      [''],
+      ['Resumen:'],
+      ['Total Investasi', formatCurrency(inputs.investmentCost)],
+      ['Pendapatan PSB', formatCurrency(results.otcRevenue)],
+      ['Pendapatan Abonemen IBL', `${formatCurrency(totalMonthlyRevenue)} /bulan`],
+      ['IRR', `${formatPercentage(results.irr)} ${coverIrrStatus}`],
+      ['NPV', `${formatCurrency(results.npv)} ${coverNpvStatus}`],
+      ['PAYBACK PERIODE', `${results.paybackPeriod.years} years ${results.paybackPeriod.months} months`],
+      [''],
+      ['Catatan:', ''],
+      ['Rekomendasi:', recommendation]
+    ];
+    
+    const wsCoverSheet = XLSX.utils.aoa_to_sheet(coverSheetData);
+    
+    // Apply formatting to the cover sheet
+    // Set column widths
+    wsCoverSheet['!cols'] = [
+      { wch: 25 }, // Column A
+      { wch: 35 }, // Column B
+      { wch: 15 }, // Column C
+      { wch: 15 }  // Column D
+    ];
+    
+    // Merge cells for header
+    if (!wsCoverSheet['!merges']) wsCoverSheet['!merges'] = [];
+    wsCoverSheet['!merges'].push(
+      { s: { r: 0, c: 0 }, e: { r: 0, c: 3 } }, // BUSINESS PLAN
+      { s: { r: 1, c: 0 }, e: { r: 1, c: 3 } }, // PT ...
+      { s: { r: 3, c: 0 }, e: { r: 3, c: 3 } }, // Document number
+      { s: { r: 4, c: 0 }, e: { r: 4, c: 3 } }, // Subtitle
+      { s: { r: 12, c: 0 }, e: { r: 12, c: 1 } }, // Resumen
+      { s: { r: 20, c: 1 }, e: { r: 20, c: 3 } }, // Catatan space
+      { s: { r: 21, c: 1 }, e: { r: 21, c: 3 } }  // Rekomendasi space
+    );
+    
+    XLSX.utils.book_append_sheet(wb, wsCoverSheet, 'BUSINESS PLAN');
+    
+    // ===== SHEET 2: Detail Layanan (keep as is) =====
     const serviceDetailsData = [
       ['Detail Layanan - Input Komponen Layanan'],
       [''],
