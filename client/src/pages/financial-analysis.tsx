@@ -324,7 +324,7 @@ export default function FinancialAnalysis() {
     ];
     
     const wsCogsOpexAnalysis = XLSX.utils.aoa_to_sheet(cogsOpexAnalysisData);
-    XLSX.utils.book_append_sheet(wb, wsCogsOpexAnalysis, 'COGS+Opex+Ringkasan Analisis');
+    XLSX.utils.book_append_sheet(wb, wsCogsOpexAnalysis, 'COGS+Opex+Ringkasan');
     
     // ===== SHEET 3: Revenue & P&L Summary (keep as is) =====
     const plSummaryHeaders = ['Metrics', 'Total', ...results.yearlyProjections.slice(1).map((_, i) => `Tahun ${i + 1}`)];
@@ -448,11 +448,16 @@ export default function FinancialAnalysis() {
     ];
     
     const wsNPVFeasibility = XLSX.utils.aoa_to_sheet(npvFeasibilityData);
-    XLSX.utils.book_append_sheet(wb, wsNPVFeasibility, 'Analisis NPV, IRR, Payback & Feasibility');
+    XLSX.utils.book_append_sheet(wb, wsNPVFeasibility, 'NPV, IRR & Feasibility');
     
     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
     const blob = new Blob([wbout], { type: 'application/octet-stream' });
-    saveAs(blob, 'Analisis_Kelayakan_Investasi.xlsx');
+    
+    // Generate filename with customer name or placeholder
+    const customerNameForFile = inputs.customerName ? inputs.customerName.replace(/[^a-zA-Z0-9\s]/g, '').replace(/\s+/g, '_') : 'Nama_Customer';
+    const filename = `AKI PT ${customerNameForFile}.xlsx`;
+    
+    saveAs(blob, filename);
   };
 
 
