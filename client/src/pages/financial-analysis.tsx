@@ -1292,6 +1292,11 @@ export default function FinancialAnalysis() {
             </Card>
           </div>
         )}
+
+        {/* Footer */}
+        <footer className="mt-12 py-6 border-t border-gray-200 text-center text-sm text-gray-600">
+          <p>Copyright (C) 2025, Made by Raf. Build version 1.0.0</p>
+        </footer>
       </div>
     </div>
   );
