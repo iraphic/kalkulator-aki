@@ -714,8 +714,8 @@ export default function FinancialAnalysis() {
                             BW (Bandwidth)
                           </Label>
                           <Input
-                            type="text"
-                            placeholder="Contoh: 100 Mbps"
+                            type="number"
+                            placeholder="100"
                             value={inputValues.services.find(s => s.id === service.id)?.bandwidth || ''}
                             onChange={(e) => handleServiceChange(service.id, 'bandwidth', e.target.value)}
                             className="w-full"
@@ -745,14 +745,19 @@ export default function FinancialAnalysis() {
                           <Label className="block text-sm font-medium text-foreground mb-2">
                             Satuan
                           </Label>
-                          <Input
-                            type="text"
-                            placeholder="titik / unit"
+                          <Select
                             value={inputValues.services.find(s => s.id === service.id)?.unit || ''}
-                            onChange={(e) => handleServiceChange(service.id, 'unit', e.target.value)}
-                            className="w-full"
-                            data-testid={`input-unit-${service.id}`}
-                          />
+                            onValueChange={(value) => handleServiceChange(service.id, 'unit', value)}
+                          >
+                            <SelectTrigger className="w-full" data-testid={`input-unit-${service.id}`}>
+                              <SelectValue placeholder="Pilih satuan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="titik">titik</SelectItem>
+                              <SelectItem value="unit">unit</SelectItem>
+                              <SelectItem value="pcs">pcs</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
                         
                         <div>
@@ -1195,7 +1200,7 @@ export default function FinancialAnalysis() {
                         <TableHeader>
                           <TableRow className="bg-muted/50">
                             <TableHead className="border-r text-center font-semibold text-foreground">Layanan</TableHead>
-                            <TableHead className="border-r text-center font-semibold text-foreground">BW</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">BW (Mbps)</TableHead>
                             <TableHead className="border-r text-center font-semibold text-foreground">Qty</TableHead>
                             <TableHead className="border-r text-center font-semibold text-foreground">Satuan</TableHead>
                             <TableHead className="border-r text-center font-semibold text-foreground">OTC</TableHead>
