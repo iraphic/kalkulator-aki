@@ -25,7 +25,7 @@ export default function FinancialAnalysis() {
       monthlyRevenue: 0,
       otcCost: 0,
       bandwidth: "",
-      quantity: 0,
+      quantity: 1,
       unit: "",
     }],
   });
@@ -41,7 +41,7 @@ export default function FinancialAnalysis() {
       monthlyRevenue: "",
       otcCost: "",
       bandwidth: "",
-      quantity: "",
+      quantity: "1",
       unit: "",
     }],
   });
@@ -111,7 +111,7 @@ export default function FinancialAnalysis() {
       monthlyRevenue: 0,
       otcCost: 0,
       bandwidth: "",
-      quantity: 0,
+      quantity: 1,
       unit: "",
     };
     const newServiceDisplay = {
@@ -120,7 +120,7 @@ export default function FinancialAnalysis() {
       monthlyRevenue: "",
       otcCost: "",
       bandwidth: "",
-      quantity: "",
+      quantity: "1",
       unit: "",
     };
 
@@ -145,9 +145,14 @@ export default function FinancialAnalysis() {
     }));
   };
 
+  // Helper function to get safe quantity multiplier
+  const getSafeQuantity = (quantity: number | undefined): number => {
+    return Number.isFinite(quantity) ? Math.max(quantity!, 0) : 1;
+  };
+
   // Calculate totals for display
-  const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + service.monthlyRevenue, 0);
-  const totalOtcCost = inputs.services.reduce((sum, service) => sum + service.otcCost, 0);
+  const totalMonthlyRevenue = inputs.services.reduce((sum, service) => sum + (service.monthlyRevenue * getSafeQuantity(service.quantity)), 0);
+  const totalOtcCost = inputs.services.reduce((sum, service) => sum + (service.otcCost * getSafeQuantity(service.quantity)), 0);
 
   const handlePeriodTypeChange = (value: string) => {
     setPeriodType(value);
@@ -1209,9 +1214,9 @@ export default function FinancialAnalysis() {
                               <TableCell className="border-r text-center" data-testid={`table-unit-${service.id}`}>{service.unit || "-"}</TableCell>
                               <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>
                               <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue)}</TableCell>
-                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>
-                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue)}</TableCell>
-                              <TableCell className="text-right font-mono">{formatCurrency(service.monthlyRevenue * inputs.contractPeriod)}</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost * getSafeQuantity(service.quantity))}</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue * getSafeQuantity(service.quantity))}</TableCell>
+                              <TableCell className="text-right font-mono">{formatCurrency(service.monthlyRevenue * getSafeQuantity(service.quantity) * inputs.contractPeriod)}</TableCell>
                             </TableRow>
                           ))}
                           

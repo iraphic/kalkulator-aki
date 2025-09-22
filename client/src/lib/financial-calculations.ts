@@ -94,9 +94,14 @@ const CAPEX_ADDITIONAL = 0.007; // 0.70% for unexpected costs
 export function calculateFinancialAnalysis(inputs: FinancialInputs): CalculationResults {
   const { investmentCost, contractPeriod, services = [] } = inputs;
 
+  // Helper function to get safe quantity multiplier
+  const getSafeQuantity = (quantity: number | undefined): number => {
+    return Number.isFinite(quantity) ? Math.max(quantity!, 0) : 1;
+  };
+
   // Calculate totals from all services - ensure services is never undefined
-  const monthlyRevenue = services?.length ? services.reduce((sum, service) => sum + service.monthlyRevenue, 0) : 0;
-  const otcCost = services?.length ? services.reduce((sum, service) => sum + service.otcCost, 0) : 0;
+  const monthlyRevenue = services?.length ? services.reduce((sum, service) => sum + (service.monthlyRevenue * getSafeQuantity(service.quantity)), 0) : 0;
+  const otcCost = services?.length ? services.reduce((sum, service) => sum + (service.otcCost * getSafeQuantity(service.quantity)), 0) : 0;
 
   // Basic calculations
   const otcRevenue = otcCost; // Use actual OTC cost from user input
