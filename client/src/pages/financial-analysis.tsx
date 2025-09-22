@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetDescription, SheetHeader } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Settings } from "lucide-react";
 import { CogsTable, OpexTable, PLSummaryTable, CashFlowSummaryTable, NPVAnalysisTable, FeasibilityAnalysisTable } from "@/components/financial-tables";
 import { calculateFinancialAnalysis, type FinancialInputs, type CalculationResults, type Service } from "@/lib/financial-calculations";
@@ -1112,6 +1113,66 @@ export default function FinancialAnalysis() {
                           IRR: {results.irr >= 0.15 ? 'Layak' : 'Tidak Layak'}
                         </div>
                       </div>
+                    </div>
+                  </div>
+
+                  {/* Service Breakdown Table */}
+                  <div className="mt-8">
+                    <h3 className="font-semibold text-foreground mb-4">Detail Breakdown Layanan</h3>
+                    <div className="border rounded-lg overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="border-r text-center font-semibold text-foreground">Layanan</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">BW</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">Qty</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">Satuan</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">OTC</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">MRC</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">Total OTC</TableHead>
+                            <TableHead className="border-r text-center font-semibold text-foreground">Total MRC</TableHead>
+                            <TableHead className="text-center font-semibold text-foreground">Total MRC {inputs.contractPeriod} Bulan</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {inputs.services.map((service, index) => (
+                            <TableRow key={service.id} className={index % 2 === 0 ? "bg-background" : "bg-muted/30"} data-testid={`service-row-${service.id}`}>
+                              <TableCell className="border-r font-medium">{service.serviceDetails || `Layanan ${index + 1}`}</TableCell>
+                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
+                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
+                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue)}</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>
+                              <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue)}</TableCell>
+                              <TableCell className="text-right font-mono">{formatCurrency(service.monthlyRevenue * inputs.contractPeriod)}</TableCell>
+                            </TableRow>
+                          ))}
+                          
+                          {/* Total (exc. PPN) Row */}
+                          <TableRow className="bg-slate-100 border-t-2 border-slate-300">
+                            <TableCell className="border-r font-bold text-foreground">Total (exc. PPN)</TableCell>
+                            <TableCell className="border-r text-center text-muted-foreground">-</TableCell>
+                            <TableCell className="border-r text-center text-muted-foreground">-</TableCell>
+                            <TableCell className="border-r text-center text-muted-foreground">-</TableCell>
+                            <TableCell className="border-r text-right font-mono font-bold">{formatCurrency(totalOtcCost)}</TableCell>
+                            <TableCell className="border-r text-right font-mono font-bold">{formatCurrency(totalMonthlyRevenue)}</TableCell>
+                            <TableCell className="border-r text-right font-mono font-bold">{formatCurrency(totalOtcCost)}</TableCell>
+                            <TableCell className="border-r text-right font-mono font-bold">{formatCurrency(totalMonthlyRevenue)}</TableCell>
+                            <TableCell className="text-right font-mono font-bold">{formatCurrency(totalMonthlyRevenue * inputs.contractPeriod)}</TableCell>
+                          </TableRow>
+
+                          {/* Total OTC + MRC xxx Bulan (exc. PPN) Row */}
+                          <TableRow className="bg-blue-50 border-t border-blue-200">
+                            <TableCell className="border-r font-bold text-blue-800" colSpan={8}>
+                              Total OTC + MRC {inputs.contractPeriod} Bulan (exc. PPN)
+                            </TableCell>
+                            <TableCell className="text-right font-mono font-bold text-blue-800">
+                              {formatCurrency(totalOtcCost + (totalMonthlyRevenue * inputs.contractPeriod))}
+                            </TableCell>
+                          </TableRow>
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                 </div>
