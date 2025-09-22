@@ -696,7 +696,7 @@ export default function FinancialAnalysis() {
                           </Label>
                           <Input
                             type="text"
-                            placeholder="Contoh : Astinet 100 Mbps"
+                            placeholder="Astinet / Metro E / Indibiz, dsb."
                             value={inputValues.services.find(s => s.id === service.id)?.serviceDetails || ''}
                             onChange={(e) => handleServiceChange(service.id, 'serviceDetails', e.target.value)}
                             className="w-full"
@@ -742,7 +742,7 @@ export default function FinancialAnalysis() {
                           </Label>
                           <Input
                             type="text"
-                            placeholder="Contoh: Unit/Link/Port"
+                            placeholder="titik / unit"
                             value={inputValues.services.find(s => s.id === service.id)?.unit || ''}
                             onChange={(e) => handleServiceChange(service.id, 'unit', e.target.value)}
                             className="w-full"
