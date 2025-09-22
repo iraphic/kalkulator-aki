@@ -1295,7 +1295,7 @@ export default function FinancialAnalysis() {
 
         {/* Footer */}
         <footer className="mt-12 py-6 border-t border-gray-200 text-center text-sm text-gray-600">
-          <p>Copyright (C) 2025, Made by Raf. Build version 1.0.0</p>
+          <p>Copyright © 2025, Made by <a href="https://github.com/iraphic" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 underline">Raf</a>. Build version 1.0.0</p>
         </footer>
       </div>
     </div>
