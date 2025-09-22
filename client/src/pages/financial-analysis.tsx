@@ -24,6 +24,9 @@ export default function FinancialAnalysis() {
       serviceDetails: "",
       monthlyRevenue: 0,
       otcCost: 0,
+      bandwidth: "",
+      quantity: 0,
+      unit: "",
     }],
   });
 
@@ -37,6 +40,9 @@ export default function FinancialAnalysis() {
       serviceDetails: "",
       monthlyRevenue: "",
       otcCost: "",
+      bandwidth: "",
+      quantity: "",
+      unit: "",
     }],
   });
 
@@ -69,7 +75,11 @@ export default function FinancialAnalysis() {
         service.id === serviceId
           ? {
               ...service,
-              [field]: field === 'serviceDetails' ? value : formatInputCurrency(value)
+              [field]: (field === 'serviceDetails' || field === 'bandwidth' || field === 'unit') 
+                ? value 
+                : field === 'quantity'
+                  ? value // quantity is displayed as string in input
+                  : formatInputCurrency(value) // monthlyRevenue and otcCost
             }
           : service
       )
@@ -82,7 +92,11 @@ export default function FinancialAnalysis() {
         service.id === serviceId
           ? {
               ...service,
-              [field]: field === 'serviceDetails' ? value : parseCurrency(value)
+              [field]: (field === 'serviceDetails' || field === 'bandwidth' || field === 'unit')
+                ? value 
+                : field === 'quantity'
+                  ? parseInt(value) || 0 // quantity is stored as number
+                  : parseCurrency(value) // monthlyRevenue and otcCost
             }
           : service
       )
@@ -96,12 +110,18 @@ export default function FinancialAnalysis() {
       serviceDetails: "",
       monthlyRevenue: 0,
       otcCost: 0,
+      bandwidth: "",
+      quantity: 0,
+      unit: "",
     };
     const newServiceDisplay = {
       id: newId,
       serviceDetails: "",
       monthlyRevenue: "",
       otcCost: "",
+      bandwidth: "",
+      quantity: "",
+      unit: "",
     };
 
     setInputs(prev => ({
@@ -686,6 +706,52 @@ export default function FinancialAnalysis() {
                         
                         <div>
                           <Label className="block text-sm font-medium text-foreground mb-2">
+                            BW (Bandwidth)
+                          </Label>
+                          <Input
+                            type="text"
+                            placeholder="Contoh: 100 Mbps"
+                            value={inputValues.services.find(s => s.id === service.id)?.bandwidth || ''}
+                            onChange={(e) => handleServiceChange(service.id, 'bandwidth', e.target.value)}
+                            className="w-full"
+                            data-testid={`input-bandwidth-${service.id}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
+                            Qty (Quantity)
+                          </Label>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="1"
+                            placeholder="1"
+                            value={inputValues.services.find(s => s.id === service.id)?.quantity || ''}
+                            onChange={(e) => handleServiceChange(service.id, 'quantity', e.target.value)}
+                            className="w-full"
+                            data-testid={`input-quantity-${service.id}`}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
+                            Satuan
+                          </Label>
+                          <Input
+                            type="text"
+                            placeholder="Contoh: Unit/Link/Port"
+                            value={inputValues.services.find(s => s.id === service.id)?.unit || ''}
+                            onChange={(e) => handleServiceChange(service.id, 'unit', e.target.value)}
+                            className="w-full"
+                            data-testid={`input-unit-${service.id}`}
+                          />
+                        </div>
+                        
+                        <div>
+                          <Label className="block text-sm font-medium text-foreground mb-2">
                             Biaya Bulanan
                           </Label>
                           <div className="relative">
@@ -1138,9 +1204,9 @@ export default function FinancialAnalysis() {
                           {inputs.services.map((service, index) => (
                             <TableRow key={service.id} className={index % 2 === 0 ? "bg-background" : "bg-muted/30"} data-testid={`service-row-${service.id}`}>
                               <TableCell className="border-r font-medium">{service.serviceDetails || `Layanan ${index + 1}`}</TableCell>
-                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
-                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
-                              <TableCell className="border-r text-center text-muted-foreground">TBD</TableCell>
+                              <TableCell className="border-r text-center" data-testid={`table-bandwidth-${service.id}`}>{service.bandwidth || "-"}</TableCell>
+                              <TableCell className="border-r text-center" data-testid={`table-quantity-${service.id}`}>{service.quantity || "-"}</TableCell>
+                              <TableCell className="border-r text-center" data-testid={`table-unit-${service.id}`}>{service.unit || "-"}</TableCell>
                               <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>
                               <TableCell className="border-r text-right font-mono">{formatCurrency(service.monthlyRevenue)}</TableCell>
                               <TableCell className="border-r text-right font-mono">{formatCurrency(service.otcCost)}</TableCell>

@@ -3,6 +3,9 @@ export interface Service {
   serviceDetails: string;
   monthlyRevenue: number;
   otcCost: number;
+  bandwidth: string;
+  quantity: number;
+  unit: string;
 }
 
 export interface FinancialInputs {
